@@ -1,8 +1,8 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { View, Text } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { View, Text, Input, Picker } from '@tarojs/components';
+import Taro, { useRouter } from '@tarojs/taro';
+import { useAppStore } from '@/store';
 import StatusTag from '@/components/StatusTag';
-import { mockRecordingSessions } from '@/data/mockData';
 import styles from './index.module.scss';
 
 const formatDuration = (seconds: number): string => {
@@ -12,57 +12,163 @@ const formatDuration = (seconds: number): string => {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 };
 
+const DIALECTS = ['闽南语', '客家话', '粤语', '吴语', '湘语', '赣语', '晋语', '徽语'];
+const VILLAGES = ['安海镇', '洛阳镇', '梅城镇', '松口镇', '同里镇', '台城镇', '望城县', '浏阳市'];
+
 const RecordPage: React.FC = () => {
+  const router = useRouter();
+  const continueId = router.params.continueId;
+  const {
+    recordings,
+    addRecording,
+    updateRecording,
+    activeRecordingId,
+    setActiveRecordingId,
+  } = useAppStore();
+
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [noiseLevel] = useState<'low' | 'medium' | 'high'>('low');
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const currentSessionIdRef = useRef<string | null>(null);
+
+  const [speakerName, setSpeakerName] = useState('');
+  const [speakerAge, setSpeakerAge] = useState('60');
+  const [villageName, setVillageName] = useState(VILLAGES[0]);
+  const [dialect, setDialect] = useState(DIALECTS[0]);
+  const [hasConsent, setHasConsent] = useState(false);
+  const [showForm, setShowForm] = useState(true);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (continueId) {
+      const session = recordings.find(r => r.id === continueId);
+      if (session && session.status === 'paused') {
+        currentSessionIdRef.current = session.id;
+        setActiveRecordingId(session.id);
+        setSpeakerName(session.speakerName);
+        setSpeakerAge(String(session.speakerAge));
+        setVillageName(session.villageName);
+        setDialect(session.dialect);
+        setHasConsent(session.hasConsent);
+        setElapsed(session.duration);
+        setIsRecording(true);
+        setIsPaused(true);
+        setShowForm(false);
+      }
+    }
+  }, [continueId]);
+
+  const draftSession = recordings.find(s => s.status === 'draft' || s.status === 'paused');
 
   const startRecording = useCallback(() => {
+    if (!speakerName.trim()) {
+      Taro.showToast({ title: '请输入发音人姓名', icon: 'none' });
+      return;
+    }
+    const newId = `rec_${Date.now()}`;
+    const newSession = {
+      id: newId,
+      villageName,
+      dialect,
+      speakerName: speakerName.trim(),
+      speakerAge: parseInt(speakerAge) || 60,
+      speakerGender: 'male' as const,
+      date: new Date().toISOString().split('T')[0],
+      duration: 0,
+      status: 'recording' as const,
+      entries: 0,
+      hasConsent,
+      noiseLevel,
+    };
+    addRecording(newSession);
+    currentSessionIdRef.current = newId;
+    setActiveRecordingId(newId);
     setIsRecording(true);
     setIsPaused(false);
+    setShowForm(false);
     setElapsed(0);
     timerRef.current = setInterval(() => {
       setElapsed(prev => prev + 1);
     }, 1000);
-    console.info('[Record] Recording started');
-  }, []);
+    console.info('[Record] Recording started, session:', newId);
+  }, [speakerName, speakerAge, villageName, dialect, hasConsent, noiseLevel, addRecording, setActiveRecordingId]);
 
   const pauseRecording = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
+      timerRef.current = null;
     }
     setIsPaused(true);
+    if (currentSessionIdRef.current) {
+      updateRecording(currentSessionIdRef.current, {
+        status: 'paused',
+        duration: elapsed,
+      });
+    }
     console.info('[Record] Recording paused at', elapsed);
-  }, [elapsed]);
+  }, [elapsed, updateRecording]);
 
   const resumeRecording = useCallback(() => {
     setIsPaused(false);
     timerRef.current = setInterval(() => {
       setElapsed(prev => prev + 1);
     }, 1000);
+    if (currentSessionIdRef.current) {
+      updateRecording(currentSessionIdRef.current, { status: 'recording' });
+    }
     console.info('[Record] Recording resumed');
-  }, []);
+  }, [updateRecording]);
 
   const stopRecording = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (currentSessionIdRef.current) {
+      updateRecording(currentSessionIdRef.current, {
+        status: 'completed',
+        duration: elapsed,
+        entries: Math.floor(elapsed / 30),
+      });
     }
     setIsRecording(false);
     setIsPaused(false);
+    setActiveRecordingId(null);
+    currentSessionIdRef.current = null;
     Taro.showToast({ title: '采录已保存', icon: 'success' });
     console.info('[Record] Recording stopped, duration:', elapsed);
-  }, [elapsed]);
+  }, [elapsed, updateRecording, setActiveRecordingId]);
 
   const handleConsent = () => {
     Taro.navigateTo({ url: '/pages/consent/index' });
   };
 
-  const activeSession = mockRecordingSessions.find(s => s.status === 'recording');
-  const draftSession = mockRecordingSessions.find(s => s.status === 'draft');
-  const completedSessions = mockRecordingSessions.filter(
-    s => s.status === 'completed' || s.status === 'paused' || s.status === 'reviewing'
+  const handleContinueUnfinished = () => {
+    if (!draftSession) return;
+    currentSessionIdRef.current = draftSession.id;
+    setActiveRecordingId(draftSession.id);
+    setSpeakerName(draftSession.speakerName);
+    setSpeakerAge(String(draftSession.speakerAge));
+    setVillageName(draftSession.villageName);
+    setDialect(draftSession.dialect);
+    setHasConsent(draftSession.hasConsent);
+    setElapsed(draftSession.duration);
+    setIsRecording(true);
+    setIsPaused(true);
+    setShowForm(false);
+  };
+
+  const sessionsToShow = recordings.filter(
+    s => s.status === 'completed' || s.status === 'paused' || s.status === 'reviewing' || s.status === 'recording'
   );
 
   return (
@@ -88,6 +194,55 @@ const RecordPage: React.FC = () => {
         </View>
       )}
 
+      {!isRecording && showForm && (
+        <View className={styles.formCard}>
+          <Text className={styles.formTitle}>采录信息</Text>
+          <View className={styles.formRow}>
+            <Text className={styles.formLabel}>发音人姓名</Text>
+            <Input
+              className={styles.formInput}
+              placeholder="请输入发音人姓名"
+              value={speakerName}
+              onInput={e => setSpeakerName(e.detail.value)}
+            />
+          </View>
+          <View className={styles.formRow}>
+            <Text className={styles.formLabel}>年龄</Text>
+            <Input
+              className={styles.formInput}
+              type="number"
+              placeholder="请输入年龄"
+              value={speakerAge}
+              onInput={e => setSpeakerAge(e.detail.value)}
+            />
+          </View>
+          <View className={styles.formRow}>
+            <Text className={styles.formLabel}>村点</Text>
+            <Picker mode="selector" range={VILLAGES} value={VILLAGES.indexOf(villageName)} onChange={e => setVillageName(VILLAGES[e.detail.value])}>
+              <View className={styles.formPicker}>
+                <Text>{villageName}</Text>
+                <Text className={styles.pickerArrow}>›</Text>
+              </View>
+            </Picker>
+          </View>
+          <View className={styles.formRow}>
+            <Text className={styles.formLabel}>方言</Text>
+            <Picker mode="selector" range={DIALECTS} value={DIALECTS.indexOf(dialect)} onChange={e => setDialect(DIALECTS[e.detail.value])}>
+              <View className={styles.formPicker}>
+                <Text>{dialect}</Text>
+                <Text className={styles.pickerArrow}>›</Text>
+              </View>
+            </Picker>
+          </View>
+          <View className={styles.formRow} onClick={() => setHasConsent(!hasConsent)}>
+            <Text className={styles.formLabel}>知情同意</Text>
+            <View className={`${styles.checkbox} ${hasConsent ? styles.checkboxChecked : ''}`}>
+              {hasConsent && <Text className={styles.checkmark}>✓</Text>}
+            </View>
+          </View>
+        </View>
+      )}
+
       <View className={styles.recordingControl}>
         <View className={styles.recordingStatus}>
           {isRecording && !isPaused && <View className={styles.recordingDot} />}
@@ -107,6 +262,12 @@ const RecordPage: React.FC = () => {
         <Text className={styles.recordingTimer}>
           {isRecording ? formatDuration(elapsed) : '00:00:00'}
         </Text>
+
+        {isRecording && (
+          <Text className={styles.recordingInfo}>
+            发音人: {speakerName} | {villageName} | {dialect}
+          </Text>
+        )}
 
         <View className={styles.recordingBtnGroup}>
           {(isRecording && !isPaused) && (
@@ -146,23 +307,27 @@ const RecordPage: React.FC = () => {
           )}
         </View>
 
-        <Text className={styles.consentHint}>
-          采录前请确保已签署
-          <Text className={styles.consentLink} onClick={handleConsent}>
-            知情同意书
+        {!isRecording && (
+          <Text className={styles.consentHint}>
+            采录前请确保已签署
+            <Text className={styles.consentLink} onClick={handleConsent}>
+              知情同意书
+            </Text>
           </Text>
-        </Text>
+        )}
       </View>
 
       <View className={styles.sectionHeader}>
         <Text className={styles.sectionTitle}>采录会话</Text>
-        {draftSession && (
-          <Text className={styles.sectionAction}>继续未完成</Text>
+        {draftSession && !isRecording && (
+          <Text className={styles.sectionAction} onClick={handleContinueUnfinished}>
+            继续未完成
+          </Text>
         )}
       </View>
 
       <View className={styles.sessionList}>
-        {completedSessions.map(session => (
+        {sessionsToShow.map(session => (
           <View
             key={session.id}
             className={styles.sessionCard}

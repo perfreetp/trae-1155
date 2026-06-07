@@ -3,7 +3,7 @@ import { View, Text, Input } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import classnames from 'classnames';
 import StatusTag from '@/components/StatusTag';
-import { mockEntries } from '@/data/mockData';
+import { useAppStore } from '@/store';
 import styles from './index.module.scss';
 
 const dialectFilters = ['全部', '闽南语', '客家话', '粤语', '吴语', '湘语'];
@@ -11,8 +11,9 @@ const dialectFilters = ['全部', '闽南语', '客家话', '粤语', '吴语', 
 const EntryPage: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [activeFilter, setActiveFilter] = useState('全部');
+  const { entries } = useAppStore();
 
-  const filteredEntries = mockEntries.filter(entry => {
+  const filteredEntries = entries.filter(entry => {
     const matchSearch =
       !searchText ||
       entry.chinese.includes(searchText) ||

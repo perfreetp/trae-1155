@@ -5,26 +5,164 @@
   background-color: $color-bg-page;
 }
 
-.mapPlaceholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 500rpx;
-  background-color: $color-bg-card;
+.mapArea {
   margin: $spacing-md $page-padding;
+  background-color: $color-bg-card;
   border-radius: $radius-lg;
   box-shadow: $shadow-card;
+  overflow: hidden;
 }
 
-.mapPlaceholderIcon {
-  font-size: 80rpx;
+.mapHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 2rpx solid $color-divider;
+}
+
+.mapHeaderTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.mapHeaderCount {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.mapCanvas {
+  padding: $spacing-lg;
+}
+
+.dialectRegion {
+  margin-bottom: $spacing-lg;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.dialectLabel {
+  display: inline-flex;
+  padding: 6rpx 20rpx;
+  border-radius: $radius-round;
+  margin-bottom: $spacing-sm;
+}
+
+.markerRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  padding-left: $spacing-sm;
+}
+
+.marker {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: 8rpx 16rpx;
+  background-color: $color-bg-hover;
+  border: 2rpx solid transparent;
+  border-radius: $radius-round;
+  transition: all $transition-fast;
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.markerDot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: $radius-round;
+  flex-shrink: 0;
+}
+
+.markerName {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.detailCard {
+  margin: 0 $page-padding $spacing-md;
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-float;
+  border: 2rpx solid $color-primary;
+}
+
+.detailHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
   margin-bottom: $spacing-md;
 }
 
-.mapPlaceholderText {
-  font-size: $font-size-md;
+.detailAvatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: $radius-round;
+  flex-shrink: 0;
+}
+
+.detailInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.detailName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.detailMeta {
+  font-size: $font-size-sm;
   color: $color-text-tertiary;
+}
+
+.detailClose {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-round;
+  background-color: $color-bg-hover;
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.detailGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+}
+
+.detailItem {
+  flex: 1;
+  min-width: 280rpx;
+  background-color: $color-bg-hover;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-sm;
+}
+
+.detailItemLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.detailItemValue {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
 }
 
 .filterBar {
@@ -80,6 +218,11 @@
   padding: $spacing-lg;
   margin-bottom: $spacing-md;
   box-shadow: $shadow-card;
+  transition: all $transition-fast;
+
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
 .speakerAvatar {

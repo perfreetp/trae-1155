@@ -27,16 +27,16 @@ export const mockVillageTasks: VillageTask[] = [
 ];
 
 export const mockRecordingSessions: RecordingSession[] = [
-  { id: 'r1', villageName: '安海镇', speakerName: '陈老伯', speakerAge: 78, speakerGender: 'male', date: '2026-05-20', duration: 3600, status: 'completed', entries: 32, hasConsent: true, noiseLevel: 'low' },
-  { id: 'r2', villageName: '安海镇', speakerName: '林阿婆', speakerAge: 82, speakerGender: 'female', date: '2026-05-21', duration: 2400, status: 'completed', entries: 28, hasConsent: true, noiseLevel: 'low' },
-  { id: 'r3', villageName: '梅城镇', speakerName: '黄大叔', speakerAge: 65, speakerGender: 'male', date: '2026-05-18', duration: 1800, status: 'paused', entries: 15, hasConsent: true, noiseLevel: 'medium' },
-  { id: 'r4', villageName: '台城镇', speakerName: '伍阿姨', speakerAge: 70, speakerGender: 'female', date: '2026-05-22', duration: 900, status: 'recording', entries: 8, hasConsent: true, noiseLevel: 'high' },
-  { id: 'r5', villageName: '安海镇', speakerName: '许大爷', speakerAge: 85, speakerGender: 'male', date: '2026-05-23', duration: 0, status: 'draft', entries: 0, hasConsent: false },
-  { id: 'r6', villageName: '松口镇', speakerName: '李阿婆', speakerAge: 76, speakerGender: 'female', date: '2026-05-15', duration: 4200, status: 'completed', entries: 45, hasConsent: true, noiseLevel: 'low' },
-  { id: 'r7', villageName: '台城镇', speakerName: '陈伯', speakerAge: 72, speakerGender: 'male', date: '2026-05-19', duration: 2800, status: 'reviewing', entries: 35, hasConsent: true, noiseLevel: 'low' },
-  { id: 'r8', villageName: '安海镇', speakerName: '王阿姨', speakerAge: 68, speakerGender: 'female', date: '2026-05-17', duration: 1500, status: 'paused', entries: 18, hasConsent: true, noiseLevel: 'medium' },
-  { id: 'r9', villageName: '望城县', speakerName: '周老先生', speakerAge: 80, speakerGender: 'male', date: '2026-05-16', duration: 3200, status: 'completed', entries: 38, hasConsent: true, noiseLevel: 'low' },
-  { id: 'r10', villageName: '同里镇', speakerName: '钱阿婆', speakerAge: 74, speakerGender: 'female', date: '2026-05-14', duration: 2600, status: 'completed', entries: 30, hasConsent: true, noiseLevel: 'low' },
+  { id: 'r1', villageName: '安海镇', dialect: '闽南语', speakerName: '陈老伯', speakerAge: 78, speakerGender: 'male', date: '2026-05-20', duration: 3600, status: 'completed', entries: 32, hasConsent: true, noiseLevel: 'low' },
+  { id: 'r2', villageName: '安海镇', dialect: '闽南语', speakerName: '林阿婆', speakerAge: 82, speakerGender: 'female', date: '2026-05-21', duration: 2400, status: 'completed', entries: 28, hasConsent: true, noiseLevel: 'low' },
+  { id: 'r3', villageName: '梅城镇', dialect: '客家话', speakerName: '黄大叔', speakerAge: 65, speakerGender: 'male', date: '2026-05-18', duration: 1800, status: 'paused', entries: 15, hasConsent: true, noiseLevel: 'medium' },
+  { id: 'r4', villageName: '台城镇', dialect: '粤语', speakerName: '伍阿姨', speakerAge: 70, speakerGender: 'female', date: '2026-05-22', duration: 900, status: 'recording', entries: 8, hasConsent: true, noiseLevel: 'high' },
+  { id: 'r5', villageName: '安海镇', dialect: '闽南语', speakerName: '许大爷', speakerAge: 85, speakerGender: 'male', date: '2026-05-23', duration: 0, status: 'draft', entries: 0, hasConsent: false },
+  { id: 'r6', villageName: '松口镇', dialect: '客家话', speakerName: '李阿婆', speakerAge: 76, speakerGender: 'female', date: '2026-05-15', duration: 4200, status: 'completed', entries: 45, hasConsent: true, noiseLevel: 'low' },
+  { id: 'r7', villageName: '台城镇', dialect: '粤语', speakerName: '陈伯', speakerAge: 72, speakerGender: 'male', date: '2026-05-19', duration: 2800, status: 'reviewing', entries: 35, hasConsent: true, noiseLevel: 'low' },
+  { id: 'r8', villageName: '安海镇', dialect: '闽南语', speakerName: '王阿姨', speakerAge: 68, speakerGender: 'female', date: '2026-05-17', duration: 1500, status: 'paused', entries: 18, hasConsent: true, noiseLevel: 'medium' },
+  { id: 'r9', villageName: '望城县', dialect: '湘语', speakerName: '周老先生', speakerAge: 80, speakerGender: 'male', date: '2026-05-16', duration: 3200, status: 'completed', entries: 38, hasConsent: true, noiseLevel: 'low' },
+  { id: 'r10', villageName: '同里镇', dialect: '吴语', speakerName: '钱阿婆', speakerAge: 74, speakerGender: 'female', date: '2026-05-14', duration: 2600, status: 'completed', entries: 30, hasConsent: true, noiseLevel: 'low' },
 ];
 
 export const mockEntries: DictEntry[] = [

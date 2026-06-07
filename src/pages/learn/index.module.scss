@@ -270,3 +270,204 @@
   color: $color-primary;
   margin-top: $spacing-xs;
 }
+
+.quizFlowCard {
+  margin: 0 $page-padding $spacing-lg;
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-xl $spacing-lg;
+  box-shadow: $shadow-float;
+  border: 2rpx solid $color-primary;
+}
+
+.quizFlowTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.quizFlowDesc {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-lg;
+}
+
+.sampleSelectItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md;
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-sm;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.sampleSelectChinese {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.sampleSelectPhonetic {
+  font-size: $font-size-sm;
+  color: $color-primary;
+}
+
+.sampleSelectMeta {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.sampleSelectBtn {
+  padding: 8rpx 24rpx;
+  border: 2rpx solid $color-primary;
+  border-radius: $radius-round;
+  flex-shrink: 0;
+}
+
+.quizSampleCard {
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  text-align: center;
+}
+
+.quizSampleChinese {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.quizSamplePhonetic {
+  font-size: $font-size-lg;
+  color: $color-primary;
+  margin-top: $spacing-xs;
+}
+
+.quizSampleMeta {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xs;
+}
+
+.quizPlayBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-lg;
+}
+
+.quizPlayLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.quizActionBtn {
+  background-color: $color-primary;
+  border-radius: $radius-button;
+  height: $button-height-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: $spacing-md;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.quizStopBtn {
+  background-color: $color-recording;
+  border-radius: $radius-button;
+  height: $button-height-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: $spacing-lg;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.quizCancelBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-md;
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.quizRecordingIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.quizRecordingDot {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: $radius-round;
+  background-color: $color-recording;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.quizRecordingText {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-recording;
+}
+
+.quizScoreCard {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  margin-bottom: $spacing-lg;
+}
+
+.quizScoreValue {
+  font-size: 120rpx;
+  font-weight: $font-weight-bold;
+  color: $color-secondary;
+}
+
+.quizScoreLabel {
+  font-size: $font-size-lg;
+  color: $color-text-tertiary;
+  margin-left: $spacing-xs;
+}
+
+.quizResultInfo {
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.quizResultText {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+}
+
+.quizResultActions {
+  display: flex;
+  gap: $spacing-md;
+}

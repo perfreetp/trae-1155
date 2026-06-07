@@ -24,6 +24,7 @@ export interface VillageTask {
 export interface RecordingSession {
   id: string;
   villageName: string;
+  dialect: string;
   speakerName: string;
   speakerAge: number;
   speakerGender: 'male' | 'female';
@@ -71,12 +72,22 @@ export interface ReviewItem {
   chinese: string;
   phonetic: string;
   transcription: string;
+  previousTranscription?: string;
   audioUrl: string;
   status: 'pending' | 'approved' | 'rejected';
   version: number;
   reviewer?: string;
   feedback?: string;
   createdAt: string;
+}
+
+export interface QuizRecord {
+  id: string;
+  sampleChinese: string;
+  samplePhonetic: string;
+  dialect: string;
+  score: number;
+  date: string;
 }
 
 export interface LearningTopic {

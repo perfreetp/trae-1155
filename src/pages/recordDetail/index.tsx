@@ -1,14 +1,25 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useRouter } from '@tarojs/taro';
 import StatusTag from '@/components/StatusTag';
 import ProgressBar from '@/components/ProgressBar';
-import { mockRecordingSessions, mockEntries } from '@/data/mockData';
+import { useAppStore } from '@/store';
 import styles from './index.module.scss';
 
 const RecordDetailPage: React.FC = () => {
-  const session = mockRecordingSessions[0];
-  const sessionEntries = mockEntries.filter(e => e.region === '福建泉州').slice(0, session.entries);
+  const router = useRouter();
+  const sessionId = router.params.id;
+  const { recordings, entries } = useAppStore();
+
+  const session = useMemo(() => {
+    if (!sessionId) return recordings[0];
+    return recordings.find(r => r.id === sessionId) || recordings[0];
+  }, [sessionId, recordings]);
+
+  const sessionEntries = useMemo(() => {
+    if (!session) return [];
+    return entries.filter(e => e.region === session.villageName || e.dialect === session.dialect).slice(0, session.entries);
+  }, [session, entries]);
 
   const formatDuration = (seconds: number): string => {
     const h = Math.floor(seconds / 3600);
@@ -16,6 +27,16 @@ const RecordDetailPage: React.FC = () => {
     const s = seconds % 60;
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
+
+  if (!session) {
+    return (
+      <View className={styles.recordDetailPage}>
+        <View className={styles.infoCard}>
+          <Text className={styles.infoTitle}>未找到该采录会话</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className={styles.recordDetailPage}>
@@ -67,7 +88,9 @@ const RecordDetailPage: React.FC = () => {
       <View className={styles.entryList}>
         <Text className={styles.infoTitle}>词条列表</Text>
         {sessionEntries.map((entry, index) => (
-          <View key={entry.id} className={styles.entryItem}>
+          <View key={entry.id} className={styles.entryItem}
+            onClick={() => Taro.navigateTo({ url: `/pages/entryDetail/index?id=${entry.id}` })}
+          >
             <Text className={styles.entryIndex}>{index + 1}</Text>
             <View className={styles.entryContent}>
               <Text className={styles.entryChinese}>{entry.chinese}</Text>
@@ -84,7 +107,7 @@ const RecordDetailPage: React.FC = () => {
         <View
           className={styles.resumeBtn}
           onClick={() => {
-            Taro.showToast({ title: '继续采录', icon: 'success' });
+            Taro.navigateTo({ url: `/pages/record/index?continueId=${session.id}` });
           }}
         >
           <Text style={{ color: '#fff', fontSize: '32rpx', fontWeight: 600 }}>继续采录（断点续录）</Text>
