@@ -12,7 +12,7 @@ const NOISE_LABELS: Record<string, string> = { low: '低', medium: '中', high: 
 const RecordDetailPage: React.FC = () => {
   const router = useRouter();
   const sessionId = router.params.id;
-  const { recordings, entries, updateRecording, addEntry, linkEntryToSession } = useAppStore();
+  const { recordings, entries, reviews, updateRecording, addEntry, linkEntryToSession, markReviewResolved } = useAppStore();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editSpeakerName, setEditSpeakerName] = useState('');
@@ -34,6 +34,13 @@ const RecordDetailPage: React.FC = () => {
     if (!session) return [];
     return entries.filter(e => e.sessionId === session.id);
   }, [session, entries]);
+
+  const sessionRejections = useMemo(() => {
+    if (!session) return [];
+    return reviews.filter(r => r.sessionId === session.id && r.status === 'rejected');
+  }, [session, reviews]);
+
+  const actualEntryCount = sessionEntries.length;
 
   const formatDuration = (seconds: number): string => {
     const h = Math.floor(seconds / 3600);
@@ -102,6 +109,11 @@ const RecordDetailPage: React.FC = () => {
     setNewDefinition('');
     setShowAddEntry(false);
     Taro.showToast({ title: '词条已添加', icon: 'success' });
+  };
+
+  const handleRerecord = (reviewId: string) => {
+    markReviewResolved(reviewId);
+    Taro.navigateTo({ url: `/pages/record/index?continueId=${session.id}` });
   };
 
   return (
@@ -203,15 +215,15 @@ const RecordDetailPage: React.FC = () => {
 
       <View className={styles.infoCard}>
         <Text className={styles.infoTitle}>采录进度</Text>
-        <ProgressBar percent={Math.round((session.entries / 50) * 100)} />
+        <ProgressBar percent={Math.min(Math.round((actualEntryCount / 50) * 100), 100)} />
         <Text style={{ fontSize: '24rpx', color: '#9E9185', marginTop: '16rpx' }}>
-          已录入 {session.entries} 个词条
+          已录入 {actualEntryCount} 个词条
         </Text>
       </View>
 
       <View className={styles.entrySection}>
         <View style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24rpx' }}>
-          <Text className={styles.infoTitle}>关联词条</Text>
+          <Text className={styles.infoTitle}>关联词条 ({actualEntryCount})</Text>
           <View className={styles.addEntryBtn} onClick={() => setShowAddEntry(!showAddEntry)}>
             <Text style={{ fontSize: '26rpx', color: '#C07842', fontWeight: 500 }}>
               {showAddEntry ? '收起' : '+ 新增词条'}
@@ -263,6 +275,51 @@ const RecordDetailPage: React.FC = () => {
           <Text className={styles.emptyText}>暂无关联词条，点击右上角新增</Text>
         )}
       </View>
+
+      {sessionRejections.length > 0 && (
+        <View className={styles.rejectionSection}>
+          <Text className={styles.infoTitle}>审核退回记录 ({sessionRejections.length})</Text>
+          {sessionRejections.map(rejection => (
+            <View key={rejection.id} className={styles.rejectionCard}>
+              <View style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12rpx' }}>
+                <Text className={styles.rejectionChinese}>{rejection.chinese}</Text>
+                <View style={{ display: 'flex', gap: '12rpx', alignItems: 'center' }}>
+                  {rejection.resolved && (
+                    <View className={styles.resolvedTag}>
+                      <Text style={{ fontSize: '22rpx', color: '#5B8C7A', fontWeight: 500 }}>已处理</Text>
+                    </View>
+                  )}
+                  <StatusTag status={rejection.status} size="small" />
+                </View>
+              </View>
+              <Text className={styles.rejectionPhonetic}>{rejection.phonetic}</Text>
+              {rejection.feedback && (
+                <View className={styles.rejectionFeedback}>
+                  <Text className={styles.rejectionFeedbackLabel}>退回原因</Text>
+                  <Text className={styles.rejectionFeedbackText}>{rejection.feedback}</Text>
+                </View>
+              )}
+              {rejection.previousTranscription && (
+                <View className={styles.rejectionCompare}>
+                  <View className={styles.rejectionCompareCol}>
+                    <Text className={styles.rejectionCompareLabel}>原转写</Text>
+                    <Text className={styles.rejectionOld}>{rejection.previousTranscription}</Text>
+                  </View>
+                  <View className={styles.rejectionCompareCol}>
+                    <Text className={styles.rejectionCompareLabel}>修改后</Text>
+                    <Text className={styles.rejectionNew}>{rejection.transcription}</Text>
+                  </View>
+                </View>
+              )}
+              {!rejection.resolved && (
+                <View className={styles.rerecordBtn} onClick={() => handleRerecord(rejection.id)}>
+                  <Text style={{ color: '#fff', fontSize: '26rpx', fontWeight: 500 }}>进入补录</Text>
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+      )}
 
       {(session.status === 'paused' || session.status === 'draft' || session.status === 'recording') && (
         <View

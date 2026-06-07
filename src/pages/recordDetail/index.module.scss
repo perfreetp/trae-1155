@@ -259,3 +259,98 @@
   text-align: center;
   padding: $spacing-xl 0;
 }
+
+.rejectionSection {
+  margin-top: $spacing-lg;
+}
+
+.rejectionCard {
+  background-color: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  border-left: 6rpx solid $color-recording;
+}
+
+.rejectionChinese {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.rejectionPhonetic {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.resolvedTag {
+  padding: 4rpx 16rpx;
+  background-color: rgba(91, 140, 122, 0.15);
+  border-radius: $radius-round;
+}
+
+.rejectionFeedback {
+  background-color: rgba(212, 91, 91, 0.08);
+  border-radius: $radius-sm;
+  padding: $spacing-sm $spacing-md;
+  margin-bottom: $spacing-sm;
+}
+
+.rejectionFeedbackLabel {
+  font-size: $font-size-xs;
+  color: $color-recording;
+  margin-bottom: 4rpx;
+}
+
+.rejectionFeedbackText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.rejectionCompare {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-sm;
+}
+
+.rejectionCompareCol {
+  flex: 1;
+  min-width: 0;
+  background-color: $color-bg-hover;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-sm;
+}
+
+.rejectionCompareLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.rejectionOld {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  text-decoration: line-through;
+}
+
+.rejectionNew {
+  font-size: $font-size-sm;
+  color: $color-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.rerecordBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64rpx;
+  background-color: $color-primary;
+  border-radius: $radius-button;
+  margin-top: $spacing-sm;
+
+  &:active {
+    opacity: 0.9;
+  }
+}

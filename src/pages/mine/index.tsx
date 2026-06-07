@@ -1,17 +1,24 @@
-import React, { useState } from 'react';
-import { View, Text, Image } from '@tarojs/components';
+import React, { useState, useRef } from 'react';
+import { View, Text, Image, Input } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import StatCard from '@/components/StatCard';
 import StatusTag from '@/components/StatusTag';
-import { mockUserStats, mockUploadItems, mockOfflinePackages } from '@/data/mockData';
+import { mockUserStats, mockUploadItems } from '@/data/mockData';
 import { useAppStore } from '@/store';
+import type { RecordingSession, DictEntry, ReviewItem, QuizRecord, OfflinePackage } from '@/types';
 import styles from './index.module.scss';
 
 const MinePage: React.FC = () => {
   const [showExport, setShowExport] = useState(false);
   const [exportFormat, setExportFormat] = useState<'json' | 'csv'>('json');
   const [copied, setCopied] = useState(false);
-  const { recordings, entries, reviews, quizRecords } = useAppStore();
+  const [showPackageManager, setShowPackageManager] = useState<string | null>(null);
+  const [showImport, setShowImport] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const { recordings, entries, reviews, quizRecords, offlinePackages, deleteOfflinePackage, updateOfflinePackage, importData } = useAppStore();
 
   const formatDuration = (seconds: number): string => {
     const h = Math.floor(seconds / 3600);
@@ -33,6 +40,8 @@ const MinePage: React.FC = () => {
           status: r.status,
           entryCount: r.entries,
           date: r.date,
+          hasConsent: r.hasConsent,
+          noiseLevel: r.noiseLevel,
         })),
         entries: entries.map(e => ({
           id: e.id,
@@ -42,14 +51,20 @@ const MinePage: React.FC = () => {
           exampleSentence: e.exampleSentence,
           dialect: e.dialect,
           region: e.region,
+          sessionId: e.sessionId,
         })),
         reviews: reviews.map(r => ({
           id: r.id,
+          entryId: r.entryId,
+          chinese: r.chinese,
           transcription: r.transcription,
-          previousTranscription: r.previousTranscription,
+          previousTranscription: r.previousTranscription || '',
           status: r.status,
           version: r.version,
-          feedback: r.feedback,
+          feedback: r.feedback || '',
+          sessionId: r.sessionId || '',
+          resolved: r.resolved || false,
+          createdAt: r.createdAt,
         })),
         quizRecords: quizRecords.map(q => ({
           id: q.id,
@@ -64,15 +79,18 @@ const MinePage: React.FC = () => {
     }
 
     const csvLines: string[] = [];
-    csvLines.push('类型,ID,内容,方言,状态,日期');
+    csvLines.push('类型,ID,词条/内容,方言,审核状态,退回原因,当前转写,修改前转写,对应会话,日期');
     recordings.forEach(r => {
-      csvLines.push(`采录,${r.id},${r.speakerName}@${r.villageName},${r.dialect},${r.status},${r.date}`);
+      csvLines.push(`采录,${r.id},${r.speakerName}@${r.villageName},${r.dialect},${r.status},,,,${r.date}`);
     });
     entries.forEach(e => {
-      csvLines.push(`词条,${e.id},${e.chinese}[${e.phonetic}],${e.dialect},,${e.createdAt || ''}`);
+      csvLines.push(`词条,${e.id},${e.chinese}[${e.phonetic}],${e.dialect},,,,,${e.sessionId || ''},${e.createdAt || ''}`);
+    });
+    reviews.forEach(r => {
+      csvLines.push(`审核,${r.id},${r.chinese},,${r.status},${r.feedback || ''},${r.transcription},${r.previousTranscription || ''},${r.sessionId || ''},${r.createdAt}`);
     });
     quizRecords.forEach(q => {
-      csvLines.push(`测验,${q.id},${q.sampleChinese}[${q.samplePhonetic}],${q.dialect},${q.score}分,${q.date},录制${q.recordingDuration}秒`);
+      csvLines.push(`测验,${q.id},${q.sampleChinese}[${q.samplePhonetic}],${q.dialect},${q.score}分,,,,,${q.date},录制${q.recordingDuration}秒`);
     });
     return csvLines.join('\n');
   };
@@ -117,6 +135,67 @@ const MinePage: React.FC = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleImport = () => {
+    setShowImport(true);
+    setImportText('');
+    setImportStatus('idle');
+  };
+
+  const handleImportConfirm = () => {
+    try {
+      const data = JSON.parse(importText);
+      const importPayload: {
+        recordings?: RecordingSession[];
+        entries?: DictEntry[];
+        reviews?: ReviewItem[];
+        quizRecords?: QuizRecord[];
+      } = {};
+
+      if (data.recordings && Array.isArray(data.recordings)) importPayload.recordings = data.recordings;
+      if (data.entries && Array.isArray(data.entries)) importPayload.entries = data.entries;
+      if (data.reviews && Array.isArray(data.reviews)) importPayload.reviews = data.reviews;
+      if (data.quizRecords && Array.isArray(data.quizRecords)) importPayload.quizRecords = data.quizRecords;
+
+      importData(importPayload);
+      setImportStatus('success');
+
+      const counts = {
+        recordings: importPayload.recordings?.length || 0,
+        entries: importPayload.entries?.length || 0,
+        reviews: importPayload.reviews?.length || 0,
+        quizRecords: importPayload.quizRecords?.length || 0,
+      };
+      Taro.showToast({ title: `导入成功: ${counts.recordings}采录 ${counts.entries}词条 ${counts.reviews}审核 ${counts.quizRecords}测验`, icon: 'none', duration: 3000 });
+    } catch (e) {
+      setImportStatus('error');
+      Taro.showToast({ title: 'JSON 格式有误，请检查后重试', icon: 'none' });
+    }
+  };
+
+  const handleFileSelect = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e: Event) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const text = ev.target?.result as string;
+        setImportText(text);
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
+  const getPackageContents = (pkg: OfflinePackage) => {
+    const pkgRecordings = recordings.filter(r => r.dialect === pkg.dialect);
+    const pkgEntries = entries.filter(e => e.dialect === pkg.dialect);
+    const pkgReviews = reviews.filter(r => pkgEntries.some(e => e.id === r.entryId));
+    return { recordings: pkgRecordings, entries: pkgEntries, reviews: pkgReviews };
   };
 
   return (
@@ -176,20 +255,25 @@ const MinePage: React.FC = () => {
 
       <View className={styles.sectionHeader}>
         <Text className={styles.sectionTitle}>离线包</Text>
-        <Text className={styles.sectionAction}>管理</Text>
+        <Text className={styles.sectionAction} onClick={() => {}}>管理</Text>
       </View>
 
       <View className={styles.offlineSection}>
-        {mockOfflinePackages.map(pkg => (
+        {offlinePackages.map(pkg => (
           <View key={pkg.id} className={styles.offlineCard}>
             <View className={styles.offlineInfo}>
               <Text className={styles.offlineName}>{pkg.name}</Text>
               <Text className={styles.offlineMeta}>
                 {pkg.dialect} · {pkg.entryCount}词条 · {pkg.size}
               </Text>
+              {pkg.lastUpdated && (
+                <Text className={styles.offlineMeta}>更新于 {pkg.lastUpdated}</Text>
+              )}
             </View>
-            <View className={styles.offlineAction}>
-              <Text style={{ fontSize: '24rpx', color: '#6B5D4F' }}>管理</Text>
+            <View className={styles.offlineActions}>
+              <View className={styles.offlineActionBtn} onClick={() => setShowPackageManager(pkg.id)}>
+                <Text style={{ fontSize: '24rpx', color: '#6B5D4F' }}>管理</Text>
+              </View>
             </View>
           </View>
         ))}
@@ -215,15 +299,11 @@ const MinePage: React.FC = () => {
             </View>
             <Text className={styles.menuItemArrow}>›</Text>
           </View>
-          <View className={styles.menuItem}>
+          <View className={styles.menuItem} onClick={handleImport}>
             <View className={styles.menuItemLeft}>
               <Text className={styles.menuItemIcon}>📥</Text>
-              <Text className={styles.menuItemText}>下载离线包</Text>
-              {mockUserStats.pendingUploads > 0 && (
-                <Text className={styles.menuItemBadge}>
-                  {mockUserStats.pendingUploads}
-                </Text>
-              )}
+              <Text className={styles.menuItemText}>导入资料</Text>
+              <Text className={styles.menuItemBadgeNew}>JSON</Text>
             </View>
             <Text className={styles.menuItemArrow}>›</Text>
           </View>
@@ -243,6 +323,98 @@ const MinePage: React.FC = () => {
           </View>
         </View>
       </View>
+
+      {showPackageManager && (() => {
+        const pkg = offlinePackages.find(p => p.id === showPackageManager);
+        if (!pkg) return null;
+        const contents = getPackageContents(pkg);
+        return (
+          <View className={styles.exportOverlay} onClick={() => setShowPackageManager(null)}>
+            <View className={styles.exportModal} onClick={e => e.stopPropagation()}>
+              <Text className={styles.exportTitle}>{pkg.name} - 包内容</Text>
+              <View className={styles.pkgContentList}>
+                <View className={styles.pkgContentItem}>
+                  <Text className={styles.pkgContentLabel}>方言</Text>
+                  <Text className={styles.pkgContentValue}>{pkg.dialect}</Text>
+                </View>
+                <View className={styles.pkgContentItem}>
+                  <Text className={styles.pkgContentLabel}>采录会话</Text>
+                  <Text className={styles.pkgContentValue}>{contents.recordings.length} 条</Text>
+                </View>
+                <View className={styles.pkgContentItem}>
+                  <Text className={styles.pkgContentLabel}>词条</Text>
+                  <Text className={styles.pkgContentValue}>{contents.entries.length} 条</Text>
+                </View>
+                <View className={styles.pkgContentItem}>
+                  <Text className={styles.pkgContentLabel}>审核记录</Text>
+                  <Text className={styles.pkgContentValue}>{contents.reviews.length} 条</Text>
+                </View>
+                <View className={styles.pkgContentItem}>
+                  <Text className={styles.pkgContentLabel}>占用空间</Text>
+                  <Text className={styles.pkgContentValue}>{pkg.size}</Text>
+                </View>
+                <View className={styles.pkgContentItem}>
+                  <Text className={styles.pkgContentLabel}>下载日期</Text>
+                  <Text className={styles.pkgContentValue}>{pkg.downloadDate}</Text>
+                </View>
+                {pkg.lastUpdated && (
+                  <View className={styles.pkgContentItem}>
+                    <Text className={styles.pkgContentLabel}>最后更新</Text>
+                    <Text className={styles.pkgContentValue}>{pkg.lastUpdated}</Text>
+                  </View>
+                )}
+              </View>
+              <View className={styles.exportActions}>
+                <View className={styles.exportCopyBtn} style={{ flex: 1 }} onClick={() => { updateOfflinePackage(pkg.id); Taro.showToast({ title: '已更新', icon: 'success' }); }}>
+                  <Text style={{ color: '#C07842', fontSize: '28rpx', fontWeight: 500 }}>更新包</Text>
+                </View>
+                <View className={styles.exportDownloadBtn} style={{ flex: 1, backgroundColor: '#D45B5B' }} onClick={() => { deleteOfflinePackage(pkg.id); setShowPackageManager(null); Taro.showToast({ title: '已删除', icon: 'success' }); }}>
+                  <Text style={{ color: '#fff', fontSize: '28rpx', fontWeight: 500 }}>删除包</Text>
+                </View>
+              </View>
+              <View className={styles.exportCloseBtn} onClick={() => setShowPackageManager(null)}>
+                <Text style={{ fontSize: '28rpx', color: '#9E9185' }}>关闭</Text>
+              </View>
+            </View>
+          </View>
+        );
+      })()}
+
+      {showImport && (
+        <View className={styles.exportOverlay} onClick={() => setShowImport(false)}>
+          <View className={styles.exportModal} onClick={e => e.stopPropagation()}>
+            <Text className={styles.exportTitle}>导入资料</Text>
+            <Text className={styles.importDesc}>粘贴 JSON 内容或选择 JSON 文件导入，重复数据将自动跳过不叠加</Text>
+            <View className={styles.importActions}>
+              <View className={styles.fileSelectBtn} onClick={handleFileSelect}>
+                <Text style={{ color: '#C07842', fontSize: '28rpx', fontWeight: 500 }}>选择 JSON 文件</Text>
+              </View>
+            </View>
+            <View className={styles.importTextArea}>
+              <textarea
+                style={{ width: '100%', minHeight: '200rpx', border: '2rpx solid #E8DDD0', borderRadius: '12rpx', padding: '16rpx', fontSize: '24rpx', fontFamily: 'monospace', resize: 'vertical' }}
+                placeholder="或直接粘贴 JSON 内容..."
+                value={importText}
+                onChange={e => { setImportText(e.target.value); setImportStatus('idle'); }}
+              />
+            </View>
+            {importStatus === 'success' && (
+              <Text className={styles.importSuccess}>导入成功！新增数据已合并到当前资料库</Text>
+            )}
+            {importStatus === 'error' && (
+              <Text className={styles.importError}>JSON 格式有误，请检查后重试</Text>
+            )}
+            <View className={styles.exportActions}>
+              <View className={styles.exportDownloadBtn} style={{ flex: 1 }} onClick={handleImportConfirm}>
+                <Text style={{ color: '#fff', fontSize: '28rpx', fontWeight: 500 }}>确认导入</Text>
+              </View>
+              <View className={styles.exportCopyBtn} style={{ flex: 1 }} onClick={() => setShowImport(false)}>
+                <Text style={{ color: '#C07842', fontSize: '28rpx', fontWeight: 500 }}>关闭</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
 
       {showExport && (
         <View className={styles.exportOverlay} onClick={() => setShowExport(false)}>
@@ -264,7 +436,7 @@ const MinePage: React.FC = () => {
             </View>
             <View className={styles.exportPreview}>
               <Text className={styles.exportPreviewText}>
-                {generateExportData().substring(0, 500)}...
+                {generateExportData().substring(0, 600)}...
               </Text>
             </View>
             <View className={styles.exportSummary}>

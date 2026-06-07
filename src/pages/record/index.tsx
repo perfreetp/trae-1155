@@ -51,7 +51,7 @@ const RecordPage: React.FC = () => {
   useEffect(() => {
     if (continueId) {
       const session = recordings.find(r => r.id === continueId);
-      if (session && session.status === 'paused') {
+      if (session && (session.status === 'paused' || session.status === 'draft' || session.status === 'recording')) {
         currentSessionIdRef.current = session.id;
         setActiveRecordingId(session.id);
         setSpeakerName(session.speakerName);
@@ -67,7 +67,25 @@ const RecordPage: React.FC = () => {
     }
   }, [continueId]);
 
-  const draftSession = recordings.find(s => s.status === 'draft' || s.status === 'paused');
+  useEffect(() => {
+    if (!continueId && activeRecordingId && !isRecording) {
+      const session = recordings.find(r => r.id === activeRecordingId);
+      if (session && (session.status === 'recording' || session.status === 'paused')) {
+        currentSessionIdRef.current = session.id;
+        setSpeakerName(session.speakerName);
+        setSpeakerAge(String(session.speakerAge));
+        setVillageName(session.villageName);
+        setDialect(session.dialect);
+        setHasConsent(session.hasConsent);
+        setElapsed(session.duration);
+        setIsRecording(true);
+        setIsPaused(session.status === 'paused');
+        setShowForm(false);
+      }
+    }
+  }, [activeRecordingId]);
+
+  const draftSessions = recordings.filter(s => s.status === 'draft' || s.status === 'paused' || s.status === 'recording');
 
   const startRecording = useCallback(() => {
     if (!speakerName.trim()) {
@@ -99,7 +117,6 @@ const RecordPage: React.FC = () => {
     timerRef.current = setInterval(() => {
       setElapsed(prev => prev + 1);
     }, 1000);
-    console.info('[Record] Recording started, session:', newId);
   }, [speakerName, speakerAge, villageName, dialect, hasConsent, noiseLevel, addRecording, setActiveRecordingId]);
 
   const pauseRecording = useCallback(() => {
@@ -114,7 +131,6 @@ const RecordPage: React.FC = () => {
         duration: elapsed,
       });
     }
-    console.info('[Record] Recording paused at', elapsed);
   }, [elapsed, updateRecording]);
 
   const resumeRecording = useCallback(() => {
@@ -125,7 +141,6 @@ const RecordPage: React.FC = () => {
     if (currentSessionIdRef.current) {
       updateRecording(currentSessionIdRef.current, { status: 'recording' });
     }
-    console.info('[Record] Recording resumed');
   }, [updateRecording]);
 
   const stopRecording = useCallback(() => {
@@ -137,7 +152,6 @@ const RecordPage: React.FC = () => {
       updateRecording(currentSessionIdRef.current, {
         status: 'completed',
         duration: elapsed,
-        entries: Math.floor(elapsed / 30),
       });
     }
     setIsRecording(false);
@@ -145,23 +159,21 @@ const RecordPage: React.FC = () => {
     setActiveRecordingId(null);
     currentSessionIdRef.current = null;
     Taro.showToast({ title: '采录已保存', icon: 'success' });
-    console.info('[Record] Recording stopped, duration:', elapsed);
   }, [elapsed, updateRecording, setActiveRecordingId]);
 
   const handleConsent = () => {
     Taro.navigateTo({ url: '/pages/consent/index' });
   };
 
-  const handleContinueUnfinished = () => {
-    if (!draftSession) return;
-    currentSessionIdRef.current = draftSession.id;
-    setActiveRecordingId(draftSession.id);
-    setSpeakerName(draftSession.speakerName);
-    setSpeakerAge(String(draftSession.speakerAge));
-    setVillageName(draftSession.villageName);
-    setDialect(draftSession.dialect);
-    setHasConsent(draftSession.hasConsent);
-    setElapsed(draftSession.duration);
+  const handleContinueUnfinished = (session: typeof recordings[0]) => {
+    currentSessionIdRef.current = session.id;
+    setActiveRecordingId(session.id);
+    setSpeakerName(session.speakerName);
+    setSpeakerAge(String(session.speakerAge));
+    setVillageName(session.villageName);
+    setDialect(session.dialect);
+    setHasConsent(session.hasConsent);
+    setElapsed(session.duration);
     setIsRecording(true);
     setIsPaused(true);
     setShowForm(false);
@@ -191,6 +203,23 @@ const RecordPage: React.FC = () => {
           >
             {noiseLevel === 'medium' ? '中等' : '较高'}
           </Text>
+        </View>
+      )}
+
+      {!isRecording && draftSessions.length > 0 && showForm && (
+        <View className={styles.draftBanner}>
+          <Text className={styles.draftIcon}>📋</Text>
+          <View style={{ flex: 1 }}>
+            <Text className={styles.draftTitle}>有 {draftSessions.length} 个未完成采录</Text>
+            <Text className={styles.draftDesc}>点击恢复发音人、村点、知情同意、噪声和已录时长</Text>
+          </View>
+          {draftSessions.slice(0, 3).map(ds => (
+            <View key={ds.id} className={styles.draftResumeBtn} onClick={() => handleContinueUnfinished(ds)}>
+              <Text style={{ fontSize: '24rpx', color: '#C07842', fontWeight: 500 }}>
+                {ds.speakerName}({formatDuration(ds.duration)})
+              </Text>
+            </View>
+          ))}
         </View>
       )}
 
@@ -319,8 +348,8 @@ const RecordPage: React.FC = () => {
 
       <View className={styles.sectionHeader}>
         <Text className={styles.sectionTitle}>采录会话</Text>
-        {draftSession && !isRecording && (
-          <Text className={styles.sectionAction} onClick={handleContinueUnfinished}>
+        {draftSessions.length > 0 && !isRecording && (
+          <Text className={styles.sectionAction} onClick={() => handleContinueUnfinished(draftSessions[0])}>
             继续未完成
           </Text>
         )}

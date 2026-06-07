@@ -17,7 +17,7 @@ const ReviewPage: React.FC = () => {
   const [rejectReason, setRejectReason] = useState('');
   const [playingProgress, setPlayingProgress] = useState<Record<string, number>>({});
 
-  const { reviews, recordings, approveReview, rejectReview, editReviewTranscription } = useAppStore();
+  const { reviews, recordings, entries, approveReview, rejectReview, editReviewTranscription, markReviewResolved } = useAppStore();
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'pending', label: '待审核' },
@@ -81,9 +81,23 @@ const ReviewPage: React.FC = () => {
 
   const findSessionForReview = (item: typeof reviews[0]) => {
     if (item.sessionId) {
-      return recordings.find(r => r.id === item.sessionId);
+      const session = recordings.find(r => r.id === item.sessionId);
+      if (session) return session;
     }
-    return recordings.find(r => r.entries > 0);
+    const matchedEntry = entries.find(e => e.id === item.entryId);
+    if (matchedEntry && matchedEntry.sessionId) {
+      const session = recordings.find(r => r.id === matchedEntry.sessionId);
+      if (session) return session;
+    }
+    return recordings[0] || null;
+  };
+
+  const handleGotoSession = (item: typeof reviews[0]) => {
+    const session = findSessionForReview(item);
+    if (session) {
+      markReviewResolved(item.id);
+      Taro.navigateTo({ url: `/pages/recordDetail/index?id=${session.id}` });
+    }
   };
 
   return (
@@ -109,7 +123,14 @@ const ReviewPage: React.FC = () => {
             <View key={item.id} className={styles.reviewCard}>
               <View className={styles.reviewHeader}>
                 <Text className={styles.reviewChinese}>{item.chinese}</Text>
-                <StatusTag status={item.status} />
+                <View style={{ display: 'flex', gap: '12rpx', alignItems: 'center' }}>
+                  {item.resolved && (
+                    <View className={styles.resolvedTag}>
+                      <Text style={{ fontSize: '22rpx', color: '#5B8C7A', fontWeight: 500 }}>已处理</Text>
+                    </View>
+                  )}
+                  <StatusTag status={item.status} />
+                </View>
               </View>
               <Text className={styles.reviewPhonetic}>{item.phonetic}</Text>
 
@@ -210,10 +231,10 @@ const ReviewPage: React.FC = () => {
               {activeTab === 'rejected' && session && (
                 <View
                   className={styles.gotoSessionBtn}
-                  onClick={() => Taro.navigateTo({ url: `/pages/recordDetail/index?id=${session.id}` })}
+                  onClick={() => handleGotoSession(item)}
                 >
                   <Text style={{ fontSize: '26rpx', color: '#C07842', fontWeight: 500 }}>
-                    前往采录会话补录 ›
+                    前往采录会话补录 › ({session.speakerName}@{session.villageName})
                   </Text>
                 </View>
               )}

@@ -1,13 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { RecordingSession, DictEntry, ReviewItem, QuizRecord } from '@/types';
-import { mockRecordingSessions, mockEntries, mockReviewItems } from '@/data/mockData';
+import type { RecordingSession, DictEntry, ReviewItem, QuizRecord, OfflinePackage } from '@/types';
+import { mockRecordingSessions, mockEntries, mockReviewItems, mockOfflinePackages } from '@/data/mockData';
 
 interface AppState {
   recordings: RecordingSession[];
   entries: DictEntry[];
   reviews: ReviewItem[];
   quizRecords: QuizRecord[];
+  offlinePackages: OfflinePackage[];
   activeRecordingId: string | null;
 
   addRecording: (session: RecordingSession) => void;
@@ -20,10 +21,20 @@ interface AppState {
   approveReview: (id: string) => void;
   rejectReview: (id: string, feedback: string) => void;
   editReviewTranscription: (id: string, newTranscription: string) => void;
+  markReviewResolved: (id: string) => void;
 
   addQuizRecord: (record: QuizRecord) => void;
 
   linkEntryToSession: (sessionId: string, entryId: string) => void;
+
+  deleteOfflinePackage: (id: string) => void;
+  updateOfflinePackage: (id: string) => void;
+  importData: (data: {
+    recordings?: RecordingSession[];
+    entries?: DictEntry[];
+    reviews?: ReviewItem[];
+    quizRecords?: QuizRecord[];
+  }) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -34,8 +45,10 @@ export const useAppStore = create<AppState>()(
       reviews: mockReviewItems.map(r => ({
         ...r,
         previousTranscription: undefined as string | undefined,
+        resolved: false,
       })),
       quizRecords: [],
+      offlinePackages: [...mockOfflinePackages],
       activeRecordingId: null,
 
       addRecording: (session) => set((state) => ({
@@ -85,6 +98,12 @@ export const useAppStore = create<AppState>()(
         ),
       })),
 
+      markReviewResolved: (id) => set((state) => ({
+        reviews: state.reviews.map(r =>
+          r.id === id ? { ...r, resolved: true } : r
+        ),
+      })),
+
       addQuizRecord: (record) => set((state) => ({
         quizRecords: [record, ...state.quizRecords],
       })),
@@ -97,6 +116,35 @@ export const useAppStore = create<AppState>()(
           e.id === entryId ? { ...e, sessionId } : e
         ),
       })),
+
+      deleteOfflinePackage: (id) => set((state) => ({
+        offlinePackages: state.offlinePackages.filter(p => p.id !== id),
+      })),
+
+      updateOfflinePackage: (id) => set((state) => ({
+        offlinePackages: state.offlinePackages.map(p =>
+          p.id === id ? { ...p, lastUpdated: new Date().toISOString().split('T')[0] } : p
+        ),
+      })),
+
+      importData: (data) => set((state) => {
+        const existingRecIds = new Set(state.recordings.map(r => r.id));
+        const existingEntryIds = new Set(state.entries.map(e => e.id));
+        const existingReviewIds = new Set(state.reviews.map(r => r.id));
+        const existingQuizIds = new Set(state.quizRecords.map(q => q.id));
+
+        const newRecordings = (data.recordings || []).filter(r => !existingRecIds.has(r.id));
+        const newEntries = (data.entries || []).filter(e => !existingEntryIds.has(e.id));
+        const newReviews = (data.reviews || []).filter(r => !existingReviewIds.has(r.id));
+        const newQuizRecords = (data.quizRecords || []).filter(q => !existingQuizIds.has(q.id));
+
+        return {
+          recordings: [...newRecordings, ...state.recordings],
+          entries: [...newEntries, ...state.entries],
+          reviews: [...newReviews, ...state.reviews],
+          quizRecords: [...newQuizRecords, ...state.quizRecords],
+        };
+      }),
     }),
     {
       name: 'dialect-recorder-store',
@@ -105,6 +153,7 @@ export const useAppStore = create<AppState>()(
         entries: state.entries,
         reviews: state.reviews,
         quizRecords: state.quizRecords,
+        offlinePackages: state.offlinePackages,
       }),
     }
   )

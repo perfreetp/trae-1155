@@ -81,6 +81,7 @@ export interface ReviewItem {
   feedback?: string;
   createdAt: string;
   sessionId?: string;
+  resolved?: boolean;
 }
 
 export interface QuizRecord {
@@ -138,4 +139,5 @@ export interface OfflinePackage {
   dialect: string;
   downloadDate: string;
   entryCount: number;
+  lastUpdated?: string;
 }
