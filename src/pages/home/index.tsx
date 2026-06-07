@@ -5,11 +5,16 @@ import ProgressBar from '@/components/ProgressBar';
 import StatCard from '@/components/StatCard';
 import StatusTag from '@/components/StatusTag';
 import { mockProjects, mockVillageTasks } from '@/data/mockData';
+import { useAppStore } from '@/store';
 import styles from './index.module.scss';
 
 const HomePage: React.FC = () => {
+  const { recordings, entries, reviews } = useAppStore();
   const myTasks = mockVillageTasks.filter(t => t.status === 'in_progress');
   const unclaimedTasks = mockVillageTasks.filter(t => t.status === 'unclaimed');
+
+  const totalHours = Math.floor(recordings.reduce((sum, r) => sum + (r.duration || 0), 0) / 3600);
+  const pendingReviewCount = reviews.filter(r => r.status === 'pending').length;
 
   const handleNavigate = (url: string) => {
     Taro.navigateTo({ url });
@@ -28,9 +33,9 @@ const HomePage: React.FC = () => {
       </View>
 
       <View className={styles.statsRow}>
-        <StatCard value={6} label="进行中项目" highlight />
-        <StatCard value={156} label="已采录时长(h)" />
-        <StatCard value={892} label="词条总数" />
+        <StatCard value={recordings.length} label="采录次数" highlight />
+        <StatCard value={totalHours} label="已采录时长(h)" />
+        <StatCard value={entries.length} label="词条总数" />
       </View>
 
       <View className={styles.sectionHeader}>
@@ -91,7 +96,7 @@ const HomePage: React.FC = () => {
             <Text>📋</Text>
           </View>
           <Text className={styles.actionLabel}>审核中心</Text>
-          <Text className={styles.actionDesc}>待审6条</Text>
+          <Text className={styles.actionDesc}>待审{pendingReviewCount}条</Text>
         </View>
       </View>
 

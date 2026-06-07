@@ -81,16 +81,18 @@ const MinePage: React.FC = () => {
     const csvLines: string[] = [];
     csvLines.push('类型,ID,词条/内容,方言,审核状态,退回原因,当前转写,修改前转写,对应会话,日期');
     recordings.forEach(r => {
-      csvLines.push(`采录,${r.id},${r.speakerName}@${r.villageName},${r.dialect},${r.status},,,,${r.date}`);
+      csvLines.push(`采录,${r.id},${r.speakerName}@${r.villageName},${r.dialect},${r.status},,,,,${r.id},${r.date}`);
     });
     entries.forEach(e => {
       csvLines.push(`词条,${e.id},${e.chinese}[${e.phonetic}],${e.dialect},,,,,${e.sessionId || ''},${e.createdAt || ''}`);
     });
     reviews.forEach(r => {
-      csvLines.push(`审核,${r.id},${r.chinese},,${r.status},${r.feedback || ''},${r.transcription},${r.previousTranscription || ''},${r.sessionId || ''},${r.createdAt}`);
+      const entry = entries.find(e => e.id === r.entryId);
+      const dialect = entry?.dialect || '';
+      csvLines.push(`审核,${r.id},${r.chinese},${dialect},${r.status},${r.feedback || ''},${r.transcription},${r.previousTranscription || ''},${r.sessionId || ''},${r.createdAt}`);
     });
     quizRecords.forEach(q => {
-      csvLines.push(`测验,${q.id},${q.sampleChinese}[${q.samplePhonetic}],${q.dialect},${q.score}分,,,,,${q.date},录制${q.recordingDuration}秒`);
+      csvLines.push(`测验,${q.id},${q.sampleChinese}[${q.samplePhonetic}],${q.dialect},${q.score}分,,,,,${q.date}`);
     });
     return csvLines.join('\n');
   };
@@ -198,6 +200,11 @@ const MinePage: React.FC = () => {
     return { recordings: pkgRecordings, entries: pkgEntries, reviews: pkgReviews };
   };
 
+  const computePackageSize = (contents: ReturnType<typeof getPackageContents>) => {
+    const baseMB = contents.recordings.length * 12 + contents.entries.length * 0.5 + contents.reviews.length * 0.2;
+    return `${Math.max(Math.round(baseMB), 1)}MB`;
+  };
+
   return (
     <View className={styles.minePage}>
       <View className={styles.profileHeader}>
@@ -259,12 +266,15 @@ const MinePage: React.FC = () => {
       </View>
 
       <View className={styles.offlineSection}>
-        {offlinePackages.map(pkg => (
+        {offlinePackages.map(pkg => {
+          const contents = getPackageContents(pkg);
+          const liveSize = computePackageSize(contents);
+          return (
           <View key={pkg.id} className={styles.offlineCard}>
             <View className={styles.offlineInfo}>
               <Text className={styles.offlineName}>{pkg.name}</Text>
               <Text className={styles.offlineMeta}>
-                {pkg.dialect} · {pkg.entryCount}词条 · {pkg.size}
+                {pkg.dialect} · {contents.entries.length}词条 · {liveSize}
               </Text>
               {pkg.lastUpdated && (
                 <Text className={styles.offlineMeta}>更新于 {pkg.lastUpdated}</Text>
@@ -276,7 +286,8 @@ const MinePage: React.FC = () => {
               </View>
             </View>
           </View>
-        ))}
+        );
+        })}
       </View>
 
       <View className={styles.sectionHeader}>
@@ -328,6 +339,7 @@ const MinePage: React.FC = () => {
         const pkg = offlinePackages.find(p => p.id === showPackageManager);
         if (!pkg) return null;
         const contents = getPackageContents(pkg);
+        const liveSize = computePackageSize(contents);
         return (
           <View className={styles.exportOverlay} onClick={() => setShowPackageManager(null)}>
             <View className={styles.exportModal} onClick={e => e.stopPropagation()}>
@@ -351,7 +363,7 @@ const MinePage: React.FC = () => {
                 </View>
                 <View className={styles.pkgContentItem}>
                   <Text className={styles.pkgContentLabel}>占用空间</Text>
-                  <Text className={styles.pkgContentValue}>{pkg.size}</Text>
+                  <Text className={styles.pkgContentValue}>{liveSize}</Text>
                 </View>
                 <View className={styles.pkgContentItem}>
                   <Text className={styles.pkgContentLabel}>下载日期</Text>
@@ -364,6 +376,52 @@ const MinePage: React.FC = () => {
                   </View>
                 )}
               </View>
+
+              {contents.recordings.length > 0 && (
+                <View className={styles.pkgDetailSection}>
+                  <Text className={styles.pkgDetailTitle}>采录会话</Text>
+                  {contents.recordings.slice(0, 5).map(r => (
+                    <View key={r.id} className={styles.pkgDetailItem}>
+                      <Text className={styles.pkgDetailText}>{r.speakerName}@{r.villageName}</Text>
+                      <Text className={styles.pkgDetailMeta}>{r.status} · {r.entries}词条</Text>
+                    </View>
+                  ))}
+                  {contents.recordings.length > 5 && (
+                    <Text className={styles.pkgDetailMore}>...共 {contents.recordings.length} 条</Text>
+                  )}
+                </View>
+              )}
+
+              {contents.entries.length > 0 && (
+                <View className={styles.pkgDetailSection}>
+                  <Text className={styles.pkgDetailTitle}>词条</Text>
+                  {contents.entries.slice(0, 5).map(e => (
+                    <View key={e.id} className={styles.pkgDetailItem}>
+                      <Text className={styles.pkgDetailText}>{e.chinese} [{e.phonetic}]</Text>
+                      <Text className={styles.pkgDetailMeta}>{e.definition}</Text>
+                    </View>
+                  ))}
+                  {contents.entries.length > 5 && (
+                    <Text className={styles.pkgDetailMore}>...共 {contents.entries.length} 条</Text>
+                  )}
+                </View>
+              )}
+
+              {contents.reviews.length > 0 && (
+                <View className={styles.pkgDetailSection}>
+                  <Text className={styles.pkgDetailTitle}>审核记录</Text>
+                  {contents.reviews.slice(0, 3).map(r => (
+                    <View key={r.id} className={styles.pkgDetailItem}>
+                      <Text className={styles.pkgDetailText}>{r.chinese} - {r.status}</Text>
+                      <Text className={styles.pkgDetailMeta}>{r.feedback || r.transcription}</Text>
+                    </View>
+                  ))}
+                  {contents.reviews.length > 3 && (
+                    <Text className={styles.pkgDetailMore}>...共 {contents.reviews.length} 条</Text>
+                  )}
+                </View>
+              )}
+
               <View className={styles.exportActions}>
                 <View className={styles.exportCopyBtn} style={{ flex: 1 }} onClick={() => { updateOfflinePackage(pkg.id); Taro.showToast({ title: '已更新', icon: 'success' }); }}>
                   <Text style={{ color: '#C07842', fontSize: '28rpx', fontWeight: 500 }}>更新包</Text>

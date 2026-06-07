@@ -32,15 +32,29 @@ const RecordDetailPage: React.FC = () => {
 
   const sessionEntries = useMemo(() => {
     if (!session) return [];
-    return entries.filter(e => e.sessionId === session.id);
+    const linked = entries.filter(e => e.sessionId === session.id);
+    if (linked.length > 0) return linked;
+    if (session.entries > 0) {
+      return entries.filter(e =>
+        e.speakerName === session.speakerName &&
+        e.dialect === session.dialect &&
+        !e.sessionId
+      ).slice(0, session.entries);
+    }
+    return [];
   }, [session, entries]);
 
   const sessionRejections = useMemo(() => {
     if (!session) return [];
-    return reviews.filter(r => r.sessionId === session.id && r.status === 'rejected');
-  }, [session, reviews]);
+    const linked = reviews.filter(r => r.sessionId === session.id && r.status === 'rejected');
+    if (linked.length > 0) return linked;
+    return reviews.filter(r =>
+      sessionEntries.some(e => e.id === r.entryId) && r.status === 'rejected'
+    );
+  }, [session, reviews, sessionEntries]);
 
   const actualEntryCount = sessionEntries.length;
+  const displayEntryCount = Math.max(session.entries, actualEntryCount);
 
   const formatDuration = (seconds: number): string => {
     const h = Math.floor(seconds / 3600);
@@ -215,15 +229,15 @@ const RecordDetailPage: React.FC = () => {
 
       <View className={styles.infoCard}>
         <Text className={styles.infoTitle}>采录进度</Text>
-        <ProgressBar percent={Math.min(Math.round((actualEntryCount / 50) * 100), 100)} />
+        <ProgressBar percent={Math.min(Math.round((displayEntryCount / 50) * 100), 100)} />
         <Text style={{ fontSize: '24rpx', color: '#9E9185', marginTop: '16rpx' }}>
-          已录入 {actualEntryCount} 个词条
+          已录入 {displayEntryCount} 个词条
         </Text>
       </View>
 
       <View className={styles.entrySection}>
         <View style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24rpx' }}>
-          <Text className={styles.infoTitle}>关联词条 ({actualEntryCount})</Text>
+          <Text className={styles.infoTitle}>关联词条 ({displayEntryCount})</Text>
           <View className={styles.addEntryBtn} onClick={() => setShowAddEntry(!showAddEntry)}>
             <Text style={{ fontSize: '26rpx', color: '#C07842', fontWeight: 500 }}>
               {showAddEntry ? '收起' : '+ 新增词条'}

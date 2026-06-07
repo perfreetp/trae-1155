@@ -68,12 +68,12 @@ export const mockSpeakers: Speaker[] = [
 ];
 
 export const mockReviewItems: ReviewItem[] = [
-  { id: 'rv1', entryId: 'e3', chinese: '箸', phonetic: 'ti⁶', transcription: '食饭用箸，莫用手抓。', audioUrl: '', status: 'pending', version: 1, createdAt: '2026-05-20' },
-  { id: 'rv2', entryId: 'e4', chinese: '冇', phonetic: 'pan³', transcription: '这个面包冇冇的，不好吃。', audioUrl: '', status: 'pending', version: 1, createdAt: '2026-05-18' },
-  { id: 'rv3', entryId: 'e6', chinese: '佢', phonetic: 'gi²', transcription: '佢今日去赶圩了。', audioUrl: '', status: 'pending', version: 1, createdAt: '2026-05-18' },
-  { id: 'rv4', entryId: 'e7', chinese: '孭', phonetic: 'me¹', transcription: '阿妈孭着细崽去买菜。', audioUrl: '', status: 'pending', version: 1, createdAt: '2026-05-22' },
-  { id: 'rv5', entryId: 'e8', chinese: '靓', phonetic: 'lɛŋ³', transcription: '这件衫好靓啊！', audioUrl: '', status: 'approved', version: 2, reviewer: '审核员甲', createdAt: '2026-05-22' },
-  { id: 'rv6', entryId: 'e11', chinese: '唆', phonetic: 'so¹', transcription: '细伢子唆手指头。', audioUrl: '', status: 'rejected', version: 1, reviewer: '审核员乙', feedback: '音标标记有误，请核实', createdAt: '2026-05-16' },
+  { id: 'rv1', entryId: 'e3', chinese: '箸', phonetic: 'ti⁶', transcription: '食饭用箸，莫用手抓。', audioUrl: '', status: 'pending', version: 1, createdAt: '2026-05-20', sessionId: 'r1' },
+  { id: 'rv2', entryId: 'e4', chinese: '冇', phonetic: 'pan³', transcription: '这个面包冇冇的，不好吃。', audioUrl: '', status: 'pending', version: 1, createdAt: '2026-05-18', sessionId: 'r3' },
+  { id: 'rv3', entryId: 'e6', chinese: '佢', phonetic: 'gi²', transcription: '佢今日去赶圩了。', audioUrl: '', status: 'pending', version: 1, createdAt: '2026-05-18', sessionId: 'r3' },
+  { id: 'rv4', entryId: 'e7', chinese: '孭', phonetic: 'me¹', transcription: '阿妈孭着细崽去买菜。', audioUrl: '', status: 'pending', version: 1, createdAt: '2026-05-22', sessionId: 'r4' },
+  { id: 'rv5', entryId: 'e8', chinese: '靓', phonetic: 'lɛŋ³', transcription: '这件衫好靓啊！', audioUrl: '', status: 'approved', version: 2, reviewer: '审核员甲', createdAt: '2026-05-22', sessionId: 'r4' },
+  { id: 'rv6', entryId: 'e11', chinese: '唆', phonetic: 'so¹', transcription: '细伢子唆手指头。', audioUrl: '', status: 'rejected', version: 1, reviewer: '审核员乙', feedback: '音标标记有误，请核实', createdAt: '2026-05-16', sessionId: 'r9' },
 ];
 
 export const mockLearningTopics: LearningTopic[] = [

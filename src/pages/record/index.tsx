@@ -20,6 +20,7 @@ const RecordPage: React.FC = () => {
   const continueId = router.params.continueId;
   const {
     recordings,
+    entries,
     addRecording,
     updateRecording,
     activeRecordingId,
@@ -40,13 +41,34 @@ const RecordPage: React.FC = () => {
   const [hasConsent, setHasConsent] = useState(false);
   const [showForm, setShowForm] = useState(true);
 
+  const elapsedRef = useRef(0);
+  useEffect(() => { elapsedRef.current = elapsed; }, [elapsed]);
+
   useEffect(() => {
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
+      if (currentSessionIdRef.current && elapsedRef.current > 0) {
+        updateRecording(currentSessionIdRef.current, {
+          duration: elapsedRef.current,
+          status: 'recording',
+        });
+      }
     };
   }, []);
+
+  useEffect(() => {
+    if (!isRecording || isPaused || !currentSessionIdRef.current) return;
+    const autoSaveInterval = setInterval(() => {
+      if (currentSessionIdRef.current) {
+        updateRecording(currentSessionIdRef.current, {
+          duration: elapsed,
+        });
+      }
+    }, 5000);
+    return () => clearInterval(autoSaveInterval);
+  }, [isRecording, isPaused, elapsed, updateRecording]);
 
   useEffect(() => {
     if (continueId) {
@@ -177,6 +199,11 @@ const RecordPage: React.FC = () => {
     setIsRecording(true);
     setIsPaused(true);
     setShowForm(false);
+  };
+
+  const getEntryCount = (session: typeof recordings[0]) => {
+    const linked = entries.filter(e => e.sessionId === session.id).length;
+    return Math.max(session.entries, linked);
   };
 
   const sessionsToShow = recordings.filter(
@@ -388,7 +415,7 @@ const RecordPage: React.FC = () => {
               </Text>
               <Text className={styles.sessionStat}>
                 词条{' '}
-                <Text className={styles.sessionStatValue}>{session.entries}</Text>
+                <Text className={styles.sessionStatValue}>{getEntryCount(session)}</Text>
               </Text>
               <Text className={styles.sessionStat}>
                 {session.date}

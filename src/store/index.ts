@@ -79,11 +79,19 @@ export const useAppStore = create<AppState>()(
         ),
       })),
 
-      rejectReview: (id, feedback) => set((state) => ({
-        reviews: state.reviews.map(r =>
-          r.id === id ? { ...r, status: 'rejected' as const, feedback, reviewer: '当前审核员' } : r
-        ),
-      })),
+      rejectReview: (id, feedback) => set((state) => {
+        const review = state.reviews.find(r => r.id === id);
+        let sessionId = review?.sessionId;
+        if (!sessionId) {
+          const entry = state.entries.find(e => e.id === review?.entryId);
+          if (entry?.sessionId) sessionId = entry.sessionId;
+        }
+        return {
+          reviews: state.reviews.map(r =>
+            r.id === id ? { ...r, status: 'rejected' as const, feedback, reviewer: '当前审核员', sessionId: sessionId || r.sessionId } : r
+          ),
+        };
+      }),
 
       editReviewTranscription: (id, newTranscription) => set((state) => ({
         reviews: state.reviews.map(r =>
@@ -154,6 +162,7 @@ export const useAppStore = create<AppState>()(
         reviews: state.reviews,
         quizRecords: state.quizRecords,
         offlinePackages: state.offlinePackages,
+        activeRecordingId: state.activeRecordingId,
       }),
     }
   )
