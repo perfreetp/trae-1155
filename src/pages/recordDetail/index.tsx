@@ -1,15 +1,29 @@
-import React, { useMemo } from 'react';
-import { View, Text } from '@tarojs/components';
+import React, { useMemo, useState } from 'react';
+import { View, Text, Input, Picker } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import StatusTag from '@/components/StatusTag';
 import ProgressBar from '@/components/ProgressBar';
 import { useAppStore } from '@/store';
 import styles from './index.module.scss';
 
+const NOISE_OPTIONS = ['low', 'medium', 'high'];
+const NOISE_LABELS: Record<string, string> = { low: '低', medium: '中', high: '高' };
+
 const RecordDetailPage: React.FC = () => {
   const router = useRouter();
   const sessionId = router.params.id;
-  const { recordings, entries } = useAppStore();
+  const { recordings, entries, updateRecording, addEntry, linkEntryToSession } = useAppStore();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editSpeakerName, setEditSpeakerName] = useState('');
+  const [editSpeakerAge, setEditSpeakerAge] = useState('');
+  const [editVillageName, setEditVillageName] = useState('');
+  const [editHasConsent, setEditHasConsent] = useState(false);
+  const [editNoiseLevel, setEditNoiseLevel] = useState<'low' | 'medium' | 'high'>('low');
+  const [showAddEntry, setShowAddEntry] = useState(false);
+  const [newChinese, setNewChinese] = useState('');
+  const [newPhonetic, setNewPhonetic] = useState('');
+  const [newDefinition, setNewDefinition] = useState('');
 
   const session = useMemo(() => {
     if (!sessionId) return recordings[0];
@@ -18,7 +32,7 @@ const RecordDetailPage: React.FC = () => {
 
   const sessionEntries = useMemo(() => {
     if (!session) return [];
-    return entries.filter(e => e.region === session.villageName || e.dialect === session.dialect).slice(0, session.entries);
+    return entries.filter(e => e.sessionId === session.id);
   }, [session, entries]);
 
   const formatDuration = (seconds: number): string => {
@@ -38,42 +52,152 @@ const RecordDetailPage: React.FC = () => {
     );
   }
 
+  const startEdit = () => {
+    setEditSpeakerName(session.speakerName);
+    setEditSpeakerAge(String(session.speakerAge));
+    setEditVillageName(session.villageName);
+    setEditHasConsent(session.hasConsent);
+    setEditNoiseLevel(session.noiseLevel || 'low');
+    setIsEditing(true);
+  };
+
+  const saveEdit = () => {
+    updateRecording(session.id, {
+      speakerName: editSpeakerName.trim() || session.speakerName,
+      speakerAge: parseInt(editSpeakerAge) || session.speakerAge,
+      villageName: editVillageName.trim() || session.villageName,
+      hasConsent: editHasConsent,
+      noiseLevel: editNoiseLevel,
+    });
+    setIsEditing(false);
+    Taro.showToast({ title: '已保存', icon: 'success' });
+  };
+
+  const handleAddEntry = () => {
+    if (!newChinese.trim() || !newDefinition.trim()) {
+      Taro.showToast({ title: '请填写汉字和释义', icon: 'none' });
+      return;
+    }
+    const newEntry = {
+      id: `e_${Date.now()}`,
+      chinese: newChinese.trim(),
+      phonetic: newPhonetic.trim(),
+      definition: newDefinition.trim(),
+      exampleSentence: '暂无例句',
+      synonyms: [],
+      usageScenario: '通用',
+      dialect: session.dialect,
+      region: session.villageName,
+      speakerName: session.speakerName,
+      audioUrl: '',
+      createdAt: new Date().toISOString().split('T')[0],
+      status: 'draft' as const,
+      tags: [session.dialect],
+      sessionId: session.id,
+    };
+    addEntry(newEntry);
+    linkEntryToSession(session.id, newEntry.id);
+    setNewChinese('');
+    setNewPhonetic('');
+    setNewDefinition('');
+    setShowAddEntry(false);
+    Taro.showToast({ title: '词条已添加', icon: 'success' });
+  };
+
   return (
     <View className={styles.recordDetailPage}>
       <View className={styles.infoCard}>
         <View style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24rpx' }}>
           <Text className={styles.infoTitle}>{session.speakerName}</Text>
-          <StatusTag status={session.status} size="medium" />
-        </View>
-        <View className={styles.infoRow}>
-          <Text className={styles.infoLabel}>村点</Text>
-          <Text className={styles.infoValue}>{session.villageName}</Text>
-        </View>
-        <View className={styles.infoRow}>
-          <Text className={styles.infoLabel}>年龄/性别</Text>
-          <Text className={styles.infoValue}>{session.speakerAge}岁 / {session.speakerGender === 'male' ? '男' : '女'}</Text>
-        </View>
-        <View className={styles.infoRow}>
-          <Text className={styles.infoLabel}>采录时长</Text>
-          <Text className={styles.infoValue}>{formatDuration(session.duration)}</Text>
-        </View>
-        <View className={styles.infoRow}>
-          <Text className={styles.infoLabel}>采录日期</Text>
-          <Text className={styles.infoValue}>{session.date}</Text>
-        </View>
-        <View className={styles.infoRow}>
-          <Text className={styles.infoLabel}>知情同意</Text>
-          <Text className={styles.infoValue} style={{ color: session.hasConsent ? '#5B8C7A' : '#D45B5B' }}>
-            {session.hasConsent ? '已签署' : '未签署'}
-          </Text>
-        </View>
-        {session.noiseLevel && (
-          <View className={styles.infoRow}>
-            <Text className={styles.infoLabel}>环境噪声</Text>
-            <Text className={styles.infoValue} style={{ color: session.noiseLevel === 'high' ? '#D45B5B' : session.noiseLevel === 'medium' ? '#E8A455' : '#5B8C7A' }}>
-              {session.noiseLevel === 'low' ? '低' : session.noiseLevel === 'medium' ? '中' : '高'}
-            </Text>
+          <View style={{ display: 'flex', gap: '16rpx', alignItems: 'center' }}>
+            <StatusTag status={session.status} size="medium" />
+            {!isEditing && (
+              <View className={styles.editInfoBtn} onClick={startEdit}>
+                <Text style={{ fontSize: '24rpx', color: '#C07842' }}>编辑</Text>
+              </View>
+            )}
           </View>
+        </View>
+
+        {isEditing ? (
+          <>
+            <View className={styles.editRow}>
+              <Text className={styles.editLabel}>发音人姓名</Text>
+              <Input className={styles.editInput} value={editSpeakerName} onInput={e => setEditSpeakerName(e.detail.value)} />
+            </View>
+            <View className={styles.editRow}>
+              <Text className={styles.editLabel}>年龄</Text>
+              <Input className={styles.editInput} type="number" value={editSpeakerAge} onInput={e => setEditSpeakerAge(e.detail.value)} />
+            </View>
+            <View className={styles.editRow}>
+              <Text className={styles.editLabel}>采集地点</Text>
+              <Input className={styles.editInput} value={editVillageName} onInput={e => setEditVillageName(e.detail.value)} />
+            </View>
+            <View className={styles.editRow}>
+              <Text className={styles.editLabel}>知情同意</Text>
+              <View className={styles.consentToggle} onClick={() => setEditHasConsent(!editHasConsent)}>
+                <View className={editHasConsent ? styles.consentActive : styles.consentInactive}>
+                  <Text style={{ fontSize: '24rpx', color: editHasConsent ? '#fff' : '#6B5D4F' }}>
+                    {editHasConsent ? '已签署' : '未签署'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View className={styles.editRow}>
+              <Text className={styles.editLabel}>噪声情况</Text>
+              <Picker mode="selector" range={NOISE_OPTIONS.map(n => NOISE_LABELS[n])} value={NOISE_OPTIONS.indexOf(editNoiseLevel)} onChange={e => setEditNoiseLevel(NOISE_OPTIONS[e.detail.value] as 'low' | 'medium' | 'high')}>
+                <View className={styles.editPicker}>
+                  <Text>{NOISE_LABELS[editNoiseLevel]}</Text>
+                  <Text className={styles.pickerArrow}>›</Text>
+                </View>
+              </Picker>
+            </View>
+            <View className={styles.editActions}>
+              <View className={styles.saveBtn} onClick={saveEdit}>
+                <Text style={{ color: '#fff', fontSize: '28rpx', fontWeight: 500 }}>保存</Text>
+              </View>
+              <View className={styles.cancelBtn} onClick={() => setIsEditing(false)}>
+                <Text style={{ fontSize: '28rpx', color: '#9E9185' }}>取消</Text>
+              </View>
+            </View>
+          </>
+        ) : (
+          <>
+            <View className={styles.infoRow}>
+              <Text className={styles.infoLabel}>采集地点</Text>
+              <Text className={styles.infoValue}>{session.villageName}</Text>
+            </View>
+            <View className={styles.infoRow}>
+              <Text className={styles.infoLabel}>方言</Text>
+              <Text className={styles.infoValue}>{session.dialect}</Text>
+            </View>
+            <View className={styles.infoRow}>
+              <Text className={styles.infoLabel}>年龄/性别</Text>
+              <Text className={styles.infoValue}>{session.speakerAge}岁 / {session.speakerGender === 'male' ? '男' : '女'}</Text>
+            </View>
+            <View className={styles.infoRow}>
+              <Text className={styles.infoLabel}>采录时长</Text>
+              <Text className={styles.infoValue}>{formatDuration(session.duration)}</Text>
+            </View>
+            <View className={styles.infoRow}>
+              <Text className={styles.infoLabel}>采录日期</Text>
+              <Text className={styles.infoValue}>{session.date}</Text>
+            </View>
+            <View className={styles.infoRow}>
+              <Text className={styles.infoLabel}>知情同意</Text>
+              <Text className={styles.infoValue} style={{ color: session.hasConsent ? '#5B8C7A' : '#D45B5B' }}>
+                {session.hasConsent ? '已签署' : '未签署'}
+              </Text>
+            </View>
+            {session.noiseLevel && (
+              <View className={styles.infoRow}>
+                <Text className={styles.infoLabel}>环境噪声</Text>
+                <Text className={styles.infoValue} style={{ color: session.noiseLevel === 'high' ? '#D45B5B' : session.noiseLevel === 'medium' ? '#E8A455' : '#5B8C7A' }}>
+                  {NOISE_LABELS[session.noiseLevel]}
+                </Text>
+              </View>
+            )}
+          </>
         )}
       </View>
 
@@ -85,8 +209,41 @@ const RecordDetailPage: React.FC = () => {
         </Text>
       </View>
 
-      <View className={styles.entryList}>
-        <Text className={styles.infoTitle}>词条列表</Text>
+      <View className={styles.entrySection}>
+        <View style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24rpx' }}>
+          <Text className={styles.infoTitle}>关联词条</Text>
+          <View className={styles.addEntryBtn} onClick={() => setShowAddEntry(!showAddEntry)}>
+            <Text style={{ fontSize: '26rpx', color: '#C07842', fontWeight: 500 }}>
+              {showAddEntry ? '收起' : '+ 新增词条'}
+            </Text>
+          </View>
+        </View>
+
+        {showAddEntry && (
+          <View className={styles.addEntryForm}>
+            <View className={styles.formGroup}>
+              <Text className={styles.formLabel}>汉字 *</Text>
+              <Input className={styles.formInput} placeholder="请输入汉字" value={newChinese} onInput={e => setNewChinese(e.detail.value)} />
+            </View>
+            <View className={styles.formGroup}>
+              <Text className={styles.formLabel}>音标</Text>
+              <Input className={styles.formInput} placeholder="请输入国际音标" value={newPhonetic} onInput={e => setNewPhonetic(e.detail.value)} />
+            </View>
+            <View className={styles.formGroup}>
+              <Text className={styles.formLabel}>释义 *</Text>
+              <Input className={styles.formInput} placeholder="请输入释义" value={newDefinition} onInput={e => setNewDefinition(e.detail.value)} />
+            </View>
+            <View className={styles.formActions}>
+              <View className={styles.saveBtn} style={{ flex: 1 }} onClick={handleAddEntry}>
+                <Text style={{ color: '#fff', fontSize: '28rpx', fontWeight: 500 }}>保存词条</Text>
+              </View>
+              <View className={styles.cancelBtn} style={{ flex: 1 }} onClick={() => setShowAddEntry(false)}>
+                <Text style={{ fontSize: '28rpx', color: '#9E9185' }}>取消</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
         {sessionEntries.map((entry, index) => (
           <View key={entry.id} className={styles.entryItem}
             onClick={() => Taro.navigateTo({ url: `/pages/entryDetail/index?id=${entry.id}` })}
@@ -101,16 +258,22 @@ const RecordDetailPage: React.FC = () => {
             </View>
           </View>
         ))}
+
+        {sessionEntries.length === 0 && !showAddEntry && (
+          <Text className={styles.emptyText}>暂无关联词条，点击右上角新增</Text>
+        )}
       </View>
 
-      {session.status === 'paused' && (
+      {(session.status === 'paused' || session.status === 'draft' || session.status === 'recording') && (
         <View
           className={styles.resumeBtn}
           onClick={() => {
             Taro.navigateTo({ url: `/pages/record/index?continueId=${session.id}` });
           }}
         >
-          <Text style={{ color: '#fff', fontSize: '32rpx', fontWeight: 600 }}>继续采录（断点续录）</Text>
+          <Text style={{ color: '#fff', fontSize: '32rpx', fontWeight: 600 }}>
+            {session.status === 'paused' ? '继续采录（断点续录）' : '开始采录'}
+          </Text>
         </View>
       )}
     </View>

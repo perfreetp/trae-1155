@@ -287,3 +287,81 @@
   display: flex;
   gap: $spacing-md;
 }
+
+.compareBox {
+  background-color: $color-bg-hover;
+  border-radius: $radius-sm;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.compareTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.compareRow {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.compareCol {
+  flex: 1;
+  min-width: 0;
+}
+
+.compareLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.compareOld {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  text-decoration: line-through;
+}
+
+.compareNew {
+  font-size: $font-size-sm;
+  color: $color-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.pauseIcon {
+  width: 16rpx;
+  height: 20rpx;
+  border-left: 5rpx solid #fff;
+  border-right: 5rpx solid #fff;
+}
+
+.progressBar {
+  height: 6rpx;
+  background-color: rgba(192, 120, 66, 0.2);
+  border-radius: $radius-round;
+  margin-top: 8rpx;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: $color-primary;
+  border-radius: $radius-round;
+  transition: width 0.15s linear;
+}
+
+.gotoSessionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-md;
+  border: 2rpx solid $color-primary;
+  border-radius: $radius-button;
+  margin-bottom: $spacing-md;
+
+  &:active {
+    opacity: 0.8;
+  }
+}

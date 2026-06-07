@@ -107,3 +107,155 @@
     transform: scale(0.98);
   }
 }
+
+.editInfoBtn {
+  padding: 8rpx 20rpx;
+  border: 2rpx solid $color-primary;
+  border-radius: $radius-round;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.editRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.editLabel {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  flex-shrink: 0;
+  margin-right: $spacing-md;
+}
+
+.editInput {
+  flex: 1;
+  text-align: right;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  padding: 8rpx 0;
+  border-bottom: 2rpx solid $color-divider;
+}
+
+.editPicker {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: 8rpx 16rpx;
+  background-color: $color-bg-hover;
+  border-radius: $radius-sm;
+}
+
+.pickerArrow {
+  font-size: $font-size-md;
+  color: $color-text-disabled;
+}
+
+.consentToggle {
+  flex-shrink: 0;
+}
+
+.consentActive {
+  padding: 8rpx 20rpx;
+  background-color: $color-secondary;
+  border-radius: $radius-round;
+}
+
+.consentInactive {
+  padding: 8rpx 20rpx;
+  background-color: $color-bg-hover;
+  border-radius: $radius-round;
+}
+
+.editActions {
+  display: flex;
+  gap: $spacing-md;
+  margin-top: $spacing-md;
+}
+
+.saveBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: $button-height-md;
+  background-color: $color-primary;
+  border-radius: $radius-button;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.cancelBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: $button-height-md;
+  background-color: $color-bg-hover;
+  border-radius: $radius-button;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.entrySection {
+  margin-top: $spacing-lg;
+}
+
+.addEntryBtn {
+  padding: 8rpx 20rpx;
+  border: 2rpx solid $color-primary;
+  border-radius: $radius-round;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.addEntryForm {
+  background-color: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.formGroup {
+  margin-bottom: $spacing-md;
+}
+
+.formLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: 8rpx;
+}
+
+.formInput {
+  width: 100%;
+  height: $button-height-sm;
+  padding: 0 $spacing-md;
+  background-color: $color-bg-hover;
+  border-radius: $radius-sm;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.formActions {
+  display: flex;
+  gap: $spacing-md;
+  margin-top: $spacing-md;
+}
+
+.emptyText {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  text-align: center;
+  padding: $spacing-xl 0;
+}

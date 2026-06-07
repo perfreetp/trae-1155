@@ -51,6 +51,7 @@ export interface DictEntry {
   createdAt: string;
   status: 'draft' | 'submitted' | 'approved' | 'rejected';
   tags: string[];
+  sessionId?: string;
 }
 
 export interface Speaker {
@@ -79,6 +80,7 @@ export interface ReviewItem {
   reviewer?: string;
   feedback?: string;
   createdAt: string;
+  sessionId?: string;
 }
 
 export interface QuizRecord {
@@ -88,6 +90,7 @@ export interface QuizRecord {
   dialect: string;
   score: number;
   date: string;
+  recordingDuration: number;
 }
 
 export interface LearningTopic {

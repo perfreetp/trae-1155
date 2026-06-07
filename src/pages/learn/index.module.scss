@@ -223,6 +223,28 @@
   margin-left: 4rpx;
 }
 
+.pauseIcon {
+  width: 16rpx;
+  height: 20rpx;
+  border-left: 5rpx solid #fff;
+  border-right: 5rpx solid #fff;
+}
+
+.audioProgressBar {
+  height: 6rpx;
+  background-color: rgba(192, 120, 66, 0.2);
+  border-radius: $radius-round;
+  margin-top: 8rpx;
+  overflow: hidden;
+}
+
+.audioProgressFill {
+  height: 100%;
+  background-color: $color-primary;
+  border-radius: $radius-round;
+  transition: width 0.2s linear;
+}
+
 .topicCard {
   background-color: $color-bg-card;
   border-radius: $radius-md;

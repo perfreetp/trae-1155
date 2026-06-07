@@ -58,6 +58,7 @@ const MinePage: React.FC = () => {
           dialect: q.dialect,
           score: q.score,
           date: q.date,
+          recordingDuration: q.recordingDuration,
         })),
       }, null, 2);
     }
@@ -71,7 +72,7 @@ const MinePage: React.FC = () => {
       csvLines.push(`词条,${e.id},${e.chinese}[${e.phonetic}],${e.dialect},,${e.createdAt || ''}`);
     });
     quizRecords.forEach(q => {
-      csvLines.push(`测验,${q.id},${q.sampleChinese}[${q.samplePhonetic}],${q.dialect},${q.score}分,${q.date}`);
+      csvLines.push(`测验,${q.id},${q.sampleChinese}[${q.samplePhonetic}],${q.dialect},${q.score}分,${q.date},录制${q.recordingDuration}秒`);
     });
     return csvLines.join('\n');
   };

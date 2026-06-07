@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
+import Taro from '@tarojs/taro';
 import classnames from 'classnames';
 import { mockSpeakers } from '@/data/mockData';
+import { useAppStore } from '@/store';
 import styles from './index.module.scss';
 
 const dialectFilters = ['全部', '闽南语', '客家话', '粤语', '吴语', '湘语'];
@@ -17,11 +19,13 @@ interface SpeakerDetail {
   longitude: number;
   recordingCount: number;
   avatar: string;
+  collectionLocations: { village: string; sessionId: string }[];
 }
 
 const MapPage: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState('全部');
   const [selectedSpeaker, setSelectedSpeaker] = useState<SpeakerDetail | null>(null);
+  const { recordings } = useAppStore();
 
   const filteredSpeakers = mockSpeakers.filter(
     s => activeFilter === '全部' || s.dialect === activeFilter
@@ -42,7 +46,18 @@ const MapPage: React.FC = () => {
     return acc;
   }, {} as Record<string, typeof mockSpeakers>);
 
+  const speakerCollectionMap = useMemo(() => {
+    const map: Record<string, { village: string; sessionId: string }[]> = {};
+    mockSpeakers.forEach(sp => {
+      map[sp.id] = recordings
+        .filter(r => r.speakerName === sp.name)
+        .map(r => ({ village: r.villageName, sessionId: r.id }));
+    });
+    return map;
+  }, [recordings]);
+
   const handleSpeakerClick = (speaker: typeof mockSpeakers[0]) => {
+    const collections = speakerCollectionMap[speaker.id] || [];
     setSelectedSpeaker({
       id: speaker.id,
       name: speaker.name,
@@ -54,6 +69,7 @@ const MapPage: React.FC = () => {
       longitude: speaker.longitude,
       recordingCount: speaker.recordingCount,
       avatar: speaker.avatar,
+      collectionLocations: collections,
     });
   };
 
@@ -128,6 +144,24 @@ const MapPage: React.FC = () => {
               <Text className={styles.detailItemValue}>{selectedSpeaker.recordingCount} 条</Text>
             </View>
           </View>
+          {selectedSpeaker.collectionLocations.length > 0 && (
+            <View className={styles.collectionSection}>
+              <Text className={styles.collectionTitle}>采集地点</Text>
+              {selectedSpeaker.collectionLocations.map((loc, idx) => (
+                <View
+                  key={idx}
+                  className={styles.collectionItem}
+                  onClick={() => Taro.navigateTo({ url: `/pages/recordDetail/index?id=${loc.sessionId}` })}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text className={styles.collectionVillage}>{loc.village}</Text>
+                    <Text className={styles.collectionMeta}>采录会话 {idx + 1}</Text>
+                  </View>
+                  <Text style={{ fontSize: '24rpx', color: '#C07842' }}>›</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       )}
 
@@ -162,7 +196,7 @@ const MapPage: React.FC = () => {
             <View className={styles.speakerInfo}>
               <Text className={styles.speakerName}>{speaker.name}</Text>
               <Text className={styles.speakerPlace}>
-                {speaker.birthplace}
+                籍贯: {speaker.birthplace}
               </Text>
               <View className={styles.speakerMeta}>
                 <Text className={styles.speakerDialect}>{speaker.dialect}</Text>

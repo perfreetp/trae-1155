@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { mockLearningTopics, mockLearningSamples } from '@/data/mockData';
@@ -9,6 +9,9 @@ type QuizStep = 'idle' | 'selecting' | 'listening' | 'recording' | 'result';
 
 const LearnPage: React.FC = () => {
   const [playingSampleId, setPlayingSampleId] = useState<string | null>(null);
+  const [playProgress, setPlayProgress] = useState<Record<string, number>>({});
+  const playTimerRef = useRef<Record<string, ReturnType<typeof setInterval>>>({});
+
   const [quizStep, setQuizStep] = useState<QuizStep>('idle');
   const [selectedSample, setSelectedSample] = useState<typeof mockLearningSamples[0] | null>(null);
   const [quizScore, setQuizScore] = useState(0);
@@ -17,13 +20,44 @@ const LearnPage: React.FC = () => {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { quizRecords, addQuizRecord } = useAppStore();
 
+  useEffect(() => {
+    return () => {
+      Object.values(playTimerRef.current).forEach(clearInterval);
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
   const handlePlaySample = (sampleId: string) => {
     if (playingSampleId === sampleId) {
+      if (playTimerRef.current[sampleId]) {
+        clearInterval(playTimerRef.current[sampleId]);
+        delete playTimerRef.current[sampleId];
+      }
       setPlayingSampleId(null);
-    } else {
-      setPlayingSampleId(sampleId);
-      console.info('[Learn] Playing sample:', sampleId);
+      return;
     }
+
+    if (playingSampleId && playTimerRef.current[playingSampleId]) {
+      clearInterval(playTimerRef.current[playingSampleId]);
+      delete playTimerRef.current[playingSampleId];
+    }
+
+    setPlayingSampleId(sampleId);
+    setPlayProgress(prev => ({ ...prev, [sampleId]: 0 }));
+    playTimerRef.current[sampleId] = setInterval(() => {
+      setPlayProgress(prev => {
+        const current = prev[sampleId] || 0;
+        if (current >= 100) {
+          if (playTimerRef.current[sampleId]) {
+            clearInterval(playTimerRef.current[sampleId]);
+            delete playTimerRef.current[sampleId];
+          }
+          setPlayingSampleId(null);
+          return { ...prev, [sampleId]: 100 };
+        }
+        return { ...prev, [sampleId]: current + 4 };
+      });
+    }, 200);
   };
 
   const handleStartQuiz = () => {
@@ -42,7 +76,6 @@ const LearnPage: React.FC = () => {
     timerRef.current = setInterval(() => {
       setQuizTimer(prev => prev + 1);
     }, 1000);
-    console.info('[Learn] Quiz recording started');
   };
 
   const handleStopRecording = useCallback(() => {
@@ -52,6 +85,7 @@ const LearnPage: React.FC = () => {
     }
     setQuizRecording(false);
     const score = Math.floor(Math.random() * 30) + 70;
+    const duration = quizTimer;
     setQuizScore(score);
     setQuizStep('result');
     if (selectedSample) {
@@ -62,10 +96,10 @@ const LearnPage: React.FC = () => {
         dialect: selectedSample.dialect,
         score,
         date: new Date().toISOString().split('T')[0],
+        recordingDuration: duration,
       });
     }
-    console.info('[Learn] Quiz recording stopped, score:', score);
-  }, [selectedSample, addQuizRecord]);
+  }, [selectedSample, addQuizRecord, quizTimer]);
 
   const handleRetryQuiz = () => {
     setQuizStep('listening');
@@ -78,6 +112,12 @@ const LearnPage: React.FC = () => {
     setSelectedSample(null);
     setQuizScore(0);
     setQuizTimer(0);
+  };
+
+  const formatDuration = (seconds: number): string => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
   return (
@@ -134,11 +174,23 @@ const LearnPage: React.FC = () => {
               </View>
               <View className={styles.quizPlayBtn} onClick={() => handlePlaySample(selectedSample.id)}>
                 <View className={styles.playBtn}>
-                  <View className={styles.playIcon} />
+                  {playingSampleId === selectedSample.id ? (
+                    <View className={styles.pauseIcon} />
+                  ) : (
+                    <View className={styles.playIcon} />
+                  )}
                 </View>
-                <Text className={styles.quizPlayLabel}>
-                  {playingSampleId === selectedSample.id ? '播放中...' : '点击播放'}
-                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text className={styles.quizPlayLabel}>
+                    {playingSampleId === selectedSample.id ? '播放中...' : '点击播放'}
+                  </Text>
+                  <View className={styles.audioProgressBar}>
+                    <View
+                      className={styles.audioProgressFill}
+                      style={{ width: `${playProgress[selectedSample.id] || 0}%` }}
+                    />
+                  </View>
+                </View>
               </View>
               <View className={styles.quizActionBtn} onClick={handleStartRecording}>
                 <Text style={{ color: '#fff', fontSize: '28rpx', fontWeight: 600 }}>开始跟读录制</Text>
@@ -157,7 +209,7 @@ const LearnPage: React.FC = () => {
               </View>
               <View className={styles.quizRecordingIndicator}>
                 <View className={styles.quizRecordingDot} />
-                <Text className={styles.quizRecordingText}>录制中 {quizTimer}s</Text>
+                <Text className={styles.quizRecordingText}>录制中 {formatDuration(quizTimer)}</Text>
               </View>
               <View className={styles.quizStopBtn} onClick={handleStopRecording}>
                 <Text style={{ color: '#fff', fontSize: '28rpx', fontWeight: 600 }}>停止录制</Text>
@@ -177,6 +229,9 @@ const LearnPage: React.FC = () => {
                 </Text>
                 <Text className={styles.quizResultText}>
                   方言: {selectedSample.dialect}
+                </Text>
+                <Text className={styles.quizResultText}>
+                  录制时长: {formatDuration(quizTimer)}
                 </Text>
                 <Text className={styles.quizResultText}>
                   {quizScore >= 90 ? '发音非常准确！' : quizScore >= 80 ? '发音较好，继续努力！' : '还需多加练习哦！'}
@@ -238,9 +293,21 @@ const LearnPage: React.FC = () => {
                 className={styles.playBtn}
                 onClick={() => handlePlaySample(sample.id)}
               >
-                <View className={styles.playIcon} />
+                {playingSampleId === sample.id ? (
+                  <View className={styles.pauseIcon} />
+                ) : (
+                  <View className={styles.playIcon} />
+                )}
               </View>
             </View>
+            {playingSampleId === sample.id && (
+              <View className={styles.audioProgressBar}>
+                <View
+                  className={styles.audioProgressFill}
+                  style={{ width: `${playProgress[sample.id] || 0}%` }}
+                />
+              </View>
+            )}
           </View>
         ))}
       </View>
@@ -268,13 +335,13 @@ const LearnPage: React.FC = () => {
                 <Text className={styles.sectionTitle}>测验记录</Text>
               </View>
               <View className={styles.sampleSection}>
-                {quizRecords.slice(0, 5).map(record => (
+                {quizRecords.slice(0, 10).map(record => (
                   <View key={record.id} className={styles.sampleCard}>
                     <View style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <View style={{ flex: 1 }}>
                         <Text className={styles.sampleChinese}>{record.sampleChinese}</Text>
                         <Text className={styles.samplePhonetic}>{record.samplePhonetic}</Text>
-                        <Text className={styles.sampleMeta}>{record.dialect} · {record.date}</Text>
+                        <Text className={styles.sampleMeta}>{record.dialect} · {record.date} · 录制 {formatDuration(record.recordingDuration)}</Text>
                       </View>
                       <Text style={{ fontSize: '40rpx', fontWeight: 700, color: record.score >= 90 ? '#5B8C7A' : record.score >= 80 ? '#C07842' : '#D45B5B' }}>
                         {record.score}分

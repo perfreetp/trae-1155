@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { RecordingSession, DictEntry, ReviewItem, QuizRecord } from '@/types';
 import { mockRecordingSessions, mockEntries, mockReviewItems } from '@/data/mockData';
 
@@ -21,66 +22,90 @@ interface AppState {
   editReviewTranscription: (id: string, newTranscription: string) => void;
 
   addQuizRecord: (record: QuizRecord) => void;
+
+  linkEntryToSession: (sessionId: string, entryId: string) => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
-  recordings: [...mockRecordingSessions],
-  entries: [...mockEntries],
-  reviews: mockReviewItems.map(r => ({
-    ...r,
-    previousTranscription: undefined as string | undefined,
-  })),
-  quizRecords: [],
-  activeRecordingId: null,
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      recordings: [...mockRecordingSessions],
+      entries: [...mockEntries],
+      reviews: mockReviewItems.map(r => ({
+        ...r,
+        previousTranscription: undefined as string | undefined,
+      })),
+      quizRecords: [],
+      activeRecordingId: null,
 
-  addRecording: (session) => set((state) => ({
-    recordings: [session, ...state.recordings],
-  })),
+      addRecording: (session) => set((state) => ({
+        recordings: [session, ...state.recordings],
+      })),
 
-  updateRecording: (id, updates) => set((state) => ({
-    recordings: state.recordings.map(r =>
-      r.id === id ? { ...r, ...updates } : r
-    ),
-  })),
+      updateRecording: (id, updates) => set((state) => ({
+        recordings: state.recordings.map(r =>
+          r.id === id ? { ...r, ...updates } : r
+        ),
+      })),
 
-  setActiveRecordingId: (id) => set({ activeRecordingId: id }),
+      setActiveRecordingId: (id) => set({ activeRecordingId: id }),
 
-  addEntry: (entry) => set((state) => ({
-    entries: [entry, ...state.entries],
-  })),
+      addEntry: (entry) => set((state) => ({
+        entries: [entry, ...state.entries],
+      })),
 
-  updateEntry: (id, updates) => set((state) => ({
-    entries: state.entries.map(e =>
-      e.id === id ? { ...e, ...updates } : e
-    ),
-  })),
+      updateEntry: (id, updates) => set((state) => ({
+        entries: state.entries.map(e =>
+          e.id === id ? { ...e, ...updates } : e
+        ),
+      })),
 
-  approveReview: (id) => set((state) => ({
-    reviews: state.reviews.map(r =>
-      r.id === id ? { ...r, status: 'approved' as const, version: r.version + 1, reviewer: '当前审核员' } : r
-    ),
-  })),
+      approveReview: (id) => set((state) => ({
+        reviews: state.reviews.map(r =>
+          r.id === id ? { ...r, status: 'approved' as const, version: r.version + 1, reviewer: '当前审核员' } : r
+        ),
+      })),
 
-  rejectReview: (id, feedback) => set((state) => ({
-    reviews: state.reviews.map(r =>
-      r.id === id ? { ...r, status: 'rejected' as const, feedback, reviewer: '当前审核员' } : r
-    ),
-  })),
+      rejectReview: (id, feedback) => set((state) => ({
+        reviews: state.reviews.map(r =>
+          r.id === id ? { ...r, status: 'rejected' as const, feedback, reviewer: '当前审核员' } : r
+        ),
+      })),
 
-  editReviewTranscription: (id, newTranscription) => set((state) => ({
-    reviews: state.reviews.map(r =>
-      r.id === id
-        ? {
-            ...r,
-            previousTranscription: r.transcription,
-            transcription: newTranscription,
-            version: r.version + 1,
-          }
-        : r
-    ),
-  })),
+      editReviewTranscription: (id, newTranscription) => set((state) => ({
+        reviews: state.reviews.map(r =>
+          r.id === id
+            ? {
+                ...r,
+                previousTranscription: r.transcription,
+                transcription: newTranscription,
+                version: r.version + 1,
+              }
+            : r
+        ),
+      })),
 
-  addQuizRecord: (record) => set((state) => ({
-    quizRecords: [record, ...state.quizRecords],
-  })),
-}));
+      addQuizRecord: (record) => set((state) => ({
+        quizRecords: [record, ...state.quizRecords],
+      })),
+
+      linkEntryToSession: (sessionId, entryId) => set((state) => ({
+        recordings: state.recordings.map(r =>
+          r.id === sessionId ? { ...r, entries: r.entries + 1 } : r
+        ),
+        entries: state.entries.map(e =>
+          e.id === entryId ? { ...e, sessionId } : e
+        ),
+      })),
+    }),
+    {
+      name: 'dialect-recorder-store',
+      partialize: (state) => ({
+        recordings: state.recordings,
+        entries: state.entries,
+        reviews: state.reviews,
+        quizRecords: state.quizRecords,
+      }),
+    }
+  )
+);
