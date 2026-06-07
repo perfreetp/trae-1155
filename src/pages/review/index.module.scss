@@ -1,0 +1,256 @@
+@use '@/styles/variables.scss' as *;
+
+.reviewPage {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: 120rpx;
+}
+
+.tabBar {
+  display: flex;
+  padding: 0 $page-padding;
+  margin-bottom: $spacing-lg;
+  gap: 0;
+  background-color: $color-bg-card;
+  border-radius: $radius-round;
+  margin-left: $page-padding;
+  margin-right: $page-padding;
+  overflow: hidden;
+}
+
+.tab {
+  @include button-reset;
+  flex: 1;
+  height: 80rpx;
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  border-radius: $radius-round;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.tabActive {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+}
+
+.reviewList {
+  padding: 0 $page-padding;
+}
+
+.reviewCard {
+  background-color: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.reviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.reviewChinese {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.reviewPhonetic {
+  font-size: $font-size-md;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-md;
+}
+
+.reviewTranscription {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  background-color: $color-bg-hover;
+  padding: $spacing-md;
+  border-radius: $radius-sm;
+  margin-bottom: $spacing-md;
+  line-height: $line-height-loose;
+}
+
+.reviewPlayer {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-md;
+}
+
+.playBtn {
+  @include button-reset;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-round;
+  background-color: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.playIcon {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 10rpx 0 10rpx 16rpx;
+  border-color: transparent transparent transparent #fff;
+  margin-left: 4rpx;
+}
+
+.playerInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.playerLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.playerTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.reviewActions {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.actionBtn {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-md;
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.approveBtn {
+  background: linear-gradient(135deg, $color-success 0%, $color-secondary-light 100%);
+  color: $color-text-white;
+}
+
+.rejectBtn {
+  background-color: $color-bg-hover;
+  color: $color-error;
+  border: 2rpx solid rgba(212, 91, 91, 0.2);
+}
+
+.editBtn {
+  background-color: $color-bg-primary-light;
+  color: $color-primary;
+}
+
+.versionInfo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.versionBadge {
+  font-size: $font-size-xs;
+  color: $color-text-white;
+  background-color: $color-primary;
+  padding: 4rpx 12rpx;
+  border-radius: $radius-round;
+}
+
+.versionDate {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.feedbackBox {
+  background-color: $color-recording-bg;
+  padding: $spacing-md;
+  border-radius: $radius-sm;
+  margin-bottom: $spacing-md;
+}
+
+.feedbackLabel {
+  font-size: $font-size-sm;
+  color: $color-error;
+  font-weight: $font-weight-medium;
+  margin-bottom: 4rpx;
+}
+
+.feedbackText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+}
+
+.compareSection {
+  padding: 0 $page-padding;
+  margin-bottom: $spacing-lg;
+}
+
+.compareCard {
+  background-color: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.compareTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.compareRow {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.compareCol {
+  flex: 1;
+  min-width: 0;
+}
+
+.compareLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-xs;
+}
+
+.compareValue {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  background-color: $color-bg-hover;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-sm;
+}
+
+.compareValueOld {
+  color: $color-text-tertiary;
+  text-decoration: line-through;
+}

@@ -1,0 +1,275 @@
+@use '@/styles/variables.scss' as *;
+
+.recordPage {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: 120rpx;
+}
+
+.header {
+  padding: $spacing-lg $page-padding;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: 0 0 $radius-xl $radius-xl;
+  margin-bottom: $spacing-lg;
+}
+
+.headerTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+  margin-bottom: $spacing-xs;
+}
+
+.headerSubtitle {
+  font-size: $font-size-md;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.noiseAlert {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin: 0 $page-padding $spacing-lg;
+  padding: $spacing-md $spacing-lg;
+  background-color: rgba(232, 164, 85, 0.1);
+  border: 2rpx solid rgba(232, 164, 85, 0.3);
+  border-radius: $radius-md;
+}
+
+.noiseIcon {
+  font-size: $font-size-lg;
+}
+
+.noiseText {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-warning;
+  line-height: $line-height-normal;
+}
+
+.noiseLevel {
+  padding: 4rpx 16rpx;
+  border-radius: $radius-round;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+}
+
+.noiseLow {
+  background-color: rgba(91, 140, 122, 0.1);
+  color: $color-success;
+}
+
+.noiseMedium {
+  background-color: rgba(232, 164, 85, 0.15);
+  color: $color-warning;
+}
+
+.noiseHigh {
+  background-color: $color-recording-bg;
+  color: $color-recording;
+}
+
+.recordingControl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $spacing-xl $page-padding;
+  margin: 0 $page-padding $spacing-lg;
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+}
+
+.recordingStatus {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-lg;
+}
+
+.recordingDot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: $radius-round;
+  background-color: $color-recording;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.recordingStatusText {
+  font-size: $font-size-md;
+  color: $color-recording;
+  font-weight: $font-weight-medium;
+}
+
+.idleText {
+  color: $color-text-tertiary;
+}
+
+.recordingTimer {
+  font-size: $font-size-xxl * 1.5;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-lg;
+  font-variant-numeric: tabular-nums;
+}
+
+.recordingBtnGroup {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xl;
+  margin-bottom: $spacing-lg;
+}
+
+.recordBtn {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: $radius-round;
+  background: linear-gradient(135deg, $color-recording 0%, #e87070 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+  box-shadow: 0 4rpx 20rpx rgba(212, 91, 91, 0.3);
+
+  &:active {
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
+}
+
+.recordBtnIcon {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: $radius-round;
+  background-color: #fff;
+}
+
+.recordBtnRecording {
+  animation: pulseRecord 1.5s infinite;
+}
+
+@keyframes pulseRecord {
+  0%, 100% { box-shadow: 0 4rpx 20rpx rgba(212, 91, 91, 0.3); }
+  50% { box-shadow: 0 4rpx 40rpx rgba(212, 91, 91, 0.5); }
+}
+
+.controlBtn {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: $radius-round;
+  background-color: $color-bg-hover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.controlIcon {
+  font-size: $font-size-xl;
+}
+
+.consentHint {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  text-align: center;
+}
+
+.consentLink {
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 $page-padding;
+  margin-bottom: $spacing-md;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.sectionAction {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.sessionList {
+  padding: 0 $page-padding;
+}
+
+.sessionCard {
+  background-color: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.sessionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.sessionSpeaker {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.sessionMeta {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.sessionVillage {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  background-color: $color-tag-bg;
+  padding: 4rpx 16rpx;
+  border-radius: $radius-round;
+}
+
+.sessionInfo {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.sessionStats {
+  display: flex;
+  align-items: center;
+  gap: $spacing-lg;
+}
+
+.sessionStat {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.sessionStatValue {
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}

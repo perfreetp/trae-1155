@@ -1,0 +1,44 @@
+@use '@/styles/variables.scss' as *;
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: $spacing-sm;
+}
+
+.track {
+  flex: 1;
+  height: 12rpx;
+  background-color: $color-progress-bg;
+  border-radius: $radius-round;
+  overflow: hidden;
+}
+
+.fill {
+  border-radius: $radius-round;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  transition: width $transition-base;
+}
+
+.fillSmall {
+  height: 8rpx;
+}
+
+.fillMedium {
+  height: 12rpx;
+}
+
+.label {
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+}
+
+.labelSmall {
+  font-size: $font-size-xs;
+}
+
+.labelMedium {
+  font-size: $font-size-sm;
+}

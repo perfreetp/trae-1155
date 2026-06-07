@@ -1,0 +1,108 @@
+@use '@/styles/variables.scss' as *;
+
+.player {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  background-color: $color-bg-card;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.compact {
+  padding: $spacing-sm $spacing-md;
+  box-shadow: none;
+  background-color: $color-bg-hover;
+}
+
+.playBtn {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: $radius-round;
+  background-color: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all $transition-base;
+}
+
+.compact .playBtn {
+  width: 56rpx;
+  height: 56rpx;
+}
+
+.playing {
+  background-color: $color-recording;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.playIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.triangle {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 12rpx 0 12rpx 20rpx;
+  border-color: transparent transparent transparent #fff;
+  margin-left: 4rpx;
+}
+
+.pauseBars {
+  display: flex;
+  gap: 8rpx;
+  align-items: center;
+}
+
+.bar {
+  width: 6rpx;
+  height: 24rpx;
+  background-color: #fff;
+  border-radius: 3rpx;
+}
+
+.compact .bar {
+  height: 18rpx;
+  width: 5rpx;
+}
+
+.compact .triangle {
+  border-width: 9rpx 0 9rpx 15rpx;
+  margin-left: 3rpx;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  min-width: 0;
+  flex: 1;
+}
+
+.title {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  @include text-ellipsis;
+}
+
+.dialect {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}

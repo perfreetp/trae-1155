@@ -1,0 +1,92 @@
+@use '@/styles/variables.scss' as *;
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-xs;
+  white-space: nowrap;
+}
+
+.tagSmall {
+  padding: 4rpx 12rpx;
+}
+
+.tagMedium {
+  padding: 8rpx 20rpx;
+  border-radius: $radius-sm;
+}
+
+.text {
+  font-weight: $font-weight-medium;
+}
+
+.textSmall {
+  font-size: 20rpx;
+}
+
+.textMedium {
+  font-size: $font-size-sm;
+}
+
+.default {
+  background-color: $color-divider;
+}
+
+.defaultText {
+  color: $color-text-tertiary;
+}
+
+.active {
+  background-color: $color-bg-primary-light;
+}
+
+.activeText {
+  color: $color-primary;
+}
+
+.success {
+  background-color: rgba(91, 140, 122, 0.1);
+}
+
+.successText {
+  color: $color-success;
+}
+
+.warning {
+  background-color: rgba(232, 164, 85, 0.1);
+}
+
+.warningText {
+  color: $color-warning;
+}
+
+.error {
+  background-color: $color-recording-bg;
+}
+
+.errorText {
+  color: $color-error;
+}
+
+.info {
+  background-color: rgba(192, 120, 66, 0.08);
+}
+
+.infoText {
+  color: $color-info;
+}
+
+.recording {
+  background-color: $color-recording-bg;
+  animation: pulse 1.5s infinite;
+}
+
+.recordingText {
+  color: $color-recording;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}

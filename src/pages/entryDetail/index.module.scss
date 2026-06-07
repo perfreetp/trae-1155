@@ -1,0 +1,154 @@
+@use '@/styles/variables.scss' as *;
+
+.entryDetailPage {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding: $spacing-lg $page-padding;
+  padding-bottom: 120rpx;
+}
+
+.mainCard {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-xl $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.chineseChar {
+  font-size: 96rpx;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  text-align: center;
+  margin-bottom: $spacing-md;
+}
+
+.phoneticText {
+  font-size: $font-size-xl;
+  color: $color-primary;
+  text-align: center;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-lg;
+}
+
+.playerRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.playBtn {
+  @include button-reset;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: $radius-round;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.playIcon {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 16rpx 0 16rpx 28rpx;
+  border-color: transparent transparent transparent #fff;
+  margin-left: 6rpx;
+}
+
+.playerLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.fieldGroup {
+  background-color: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.fieldLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-sm;
+}
+
+.fieldValue {
+  font-size: $font-size-lg;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  line-height: $line-height-normal;
+}
+
+.exampleBox {
+  background-color: $color-bg-hover;
+  padding: $spacing-md $spacing-lg;
+  border-radius: $radius-sm;
+  border-left: 6rpx solid $color-primary;
+}
+
+.synonymList {
+  display: flex;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.synonymTag {
+  font-size: $font-size-sm;
+  color: $color-tag-text;
+  background-color: $color-tag-bg;
+  padding: 8rpx 20rpx;
+  border-radius: $radius-round;
+}
+
+.tagList {
+  display: flex;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  background-color: $color-divider;
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+}
+
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: $spacing-md;
+}
+
+.metaText {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.editBtn {
+  @include button-reset;
+  width: 100%;
+  height: $button-height-lg;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-button;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+  margin-top: $spacing-lg;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
